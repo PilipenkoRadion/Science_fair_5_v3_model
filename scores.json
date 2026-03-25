@@ -34,5 +34,17 @@
     "avg_time": 18.0,
     "total_time": 202.0,
     "timestamp": 1774216126
+  },
+  {
+    "name": "yrj",
+    "game": "python",
+    "mode": "timer",
+    "score": 416,
+    "max_score": 1000,
+    "percent": 41.6,
+    "levels_done": 10,
+    "avg_time": 14.0,
+    "total_time": 154.0,
+    "timestamp": 1774437659
   }
 ]

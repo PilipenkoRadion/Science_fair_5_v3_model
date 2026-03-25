@@ -36,6 +36,226 @@
             font-family: 'DM Sans', sans-serif
         }
 
+        /* VIRTUAL KEYBOARD */
+        #virtualKeyboard {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 500;
+            background: rgba(13, 15, 26, .98);
+            border: 2px solid rgba(61, 111, 255, .3);
+            border-radius: 20px;
+            padding: 16px;
+            backdrop-filter: blur(20px);
+            max-width: 100%;
+            width: 90%;
+            max-width: 900px;
+            display: none;
+            box-shadow: 0 0 60px rgba(61, 111, 255, .2);
+        }
+
+        #virtualKeyboard.show {
+            display: block;
+            animation: slideUp .3s cubic-bezier(.34, 1.56, .64, 1);
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        .kb-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-family: 'Space Mono', monospace;
+            font-size: .7rem;
+            color: #3d6fff;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .kb-mode-toggle {
+            display: flex;
+            gap: 4px;
+        }
+
+        .kb-mode-btn {
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: 1px solid rgba(61, 111, 255, .2);
+            background: transparent;
+            color: #6b7280;
+            font-family: 'Space Mono', monospace;
+            font-size: .65rem;
+            cursor: pointer;
+            transition: all .2s;
+        }
+
+        .kb-mode-btn.active {
+            background: rgba(61, 111, 255, .15);
+            color: #7fa8ff;
+            border-color: rgba(61, 111, 255, .4);
+        }
+
+        .kb-mode-btn:hover {
+            background: rgba(61, 111, 255, .08);
+        }
+
+        .kb-close {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, .15);
+            color: #6b7280;
+            font-family: 'Space Mono', monospace;
+            font-size: .65rem;
+            padding: 4px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all .2s;
+        }
+
+        .kb-close:hover {
+            background: rgba(255, 255, 255, .06);
+            color: #fff;
+        }
+
+        .kb-rows {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .kb-row {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .kb-key {
+            min-width: 32px;
+            height: 40px;
+            padding: 0 8px;
+            border-radius: 10px;
+            border: 1.5px solid rgba(61, 111, 255, .25);
+            background: linear-gradient(135deg, rgba(61, 111, 255, .06), rgba(0, 212, 170, .03));
+            color: #a8b4d8;
+            font-family: 'Space Mono', monospace;
+            font-size: .75rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all .15s;
+            user-select: none;
+            position: relative;
+        }
+
+        .kb-key:hover {
+            background: linear-gradient(135deg, rgba(61, 111, 255, .12), rgba(0, 212, 170, .06));
+            border-color: rgba(61, 111, 255, .4);
+            transform: translateY(-2px);
+        }
+
+        .kb-key.selected {
+            background: linear-gradient(135deg, #3d6fff, #00d4aa);
+            color: #fff;
+            border-color: #00d4aa;
+            box-shadow: 0 0 20px rgba(61, 111, 255, .4);
+            transform: scale(1.08);
+        }
+
+        .kb-key.pressed {
+            background: linear-gradient(135deg, #00d4aa, #3d6fff);
+            transform: scale(0.95);
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, .3);
+        }
+
+        .kb-key.special {
+            flex: 1;
+            min-width: 50px;
+        }
+
+        .kb-key.space {
+            min-width: 200px;
+        }
+
+        .kb-key.backspace {
+            background: linear-gradient(135deg, rgba(255, 80, 80, .06), rgba(255, 80, 80, .02));
+            border-color: rgba(255, 80, 80, .25);
+            color: #ff8080;
+        }
+
+        .kb-key.backspace:hover {
+            background: linear-gradient(135deg, rgba(255, 80, 80, .12), rgba(255, 80, 80, .06));
+            border-color: rgba(255, 80, 80, .4);
+        }
+
+        .kb-key.enter {
+            background: linear-gradient(135deg, rgba(0, 212, 170, .08), rgba(61, 111, 255, .05));
+            border-color: rgba(0, 212, 170, .35);
+            color: #00d4aa;
+            min-width: 60px;
+        }
+
+        .kb-key.enter:hover {
+            background: linear-gradient(135deg, rgba(0, 212, 170, .15), rgba(61, 111, 255, .1));
+            border-color: rgba(0, 212, 170, .5);
+        }
+
+        .kb-indicator {
+            position: fixed;
+            bottom: 250px;
+            left: 20px;
+            z-index: 499;
+            background: rgba(13, 15, 26, .95);
+            border: 1px solid rgba(61, 111, 255, .3);
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-family: 'Space Mono', monospace;
+            font-size: .7rem;
+            color: #7fa8ff;
+            display: none;
+            backdrop-filter: blur(12px);
+            min-width: 160px;
+        }
+
+        .kb-indicator.show {
+            display: block;
+        }
+
+        .kb-indicator-mode {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .kb-indicator-line {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .kb-indicator-label {
+            color: #3d5080;
+            min-width: 45px;
+        }
+
+        .kb-indicator-value {
+            color: #00d4aa;
+            font-weight: 700;
+        }
+
         /* GESTURE OVERLAY */
         #gestureOverlay {
             position: fixed;
@@ -651,7 +871,8 @@
             z-index: 2;
             max-width: 900px;
             margin: 0 auto;
-            padding: 28px 18px
+            padding: 28px 18px;
+            padding-bottom: 280px;
         }
 
         .css-card {
@@ -718,6 +939,31 @@
             cursor: text
         }
 
+        .css-input-wrapper {
+            position: relative;
+            margin-bottom: 14px;
+        }
+
+        .css-input-toggle {
+            position: absolute;
+            top: -28px;
+            right: 0;
+            font-family: 'Space Mono', monospace;
+            font-size: .65rem;
+            background: transparent;
+            border: 1px solid #ffd9b3;
+            color: #c89070;
+            padding: 4px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all .2s;
+        }
+
+        .css-input-toggle:hover {
+            background: rgba(255, 107, 43, .06);
+            color: #ff6b2b;
+        }
+
         .css-input {
             width: 100%;
             padding: 13px 16px;
@@ -729,7 +975,6 @@
             background: #fff;
             outline: none;
             transition: border-color .2s;
-            margin-bottom: 14px
         }
 
         .css-input:focus {
@@ -933,7 +1178,8 @@
             z-index: 2;
             max-width: 900px;
             margin: 0 auto;
-            padding: 28px 18px
+            padding: 28px 18px;
+            padding-bottom: 280px;
         }
 
         .py-card {
@@ -1003,6 +1249,31 @@
             cursor: text
         }
 
+        .py-input-wrapper {
+            position: relative;
+            margin-bottom: 14px;
+        }
+
+        .py-input-toggle {
+            position: absolute;
+            top: -28px;
+            right: 0;
+            font-family: 'Space Mono', monospace;
+            font-size: .65rem;
+            background: transparent;
+            border: 1px solid rgba(61, 111, 255, .2);
+            color: #3d5080;
+            padding: 4px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all .2s;
+        }
+
+        .py-input-toggle:hover {
+            background: rgba(61, 111, 255, .06);
+            color: #7fa8ff;
+        }
+
         .py-textarea {
             width: 100%;
             padding: 13px 16px;
@@ -1015,7 +1286,6 @@
             resize: vertical;
             outline: none;
             transition: border-color .2s;
-            margin-bottom: 14px
         }
 
         .py-textarea:focus {
@@ -1329,6 +1599,27 @@
                 gap: 6px;
                 font-size: .75rem
             }
+
+            #virtualKeyboard {
+                width: 95%;
+                bottom: 10px;
+                padding: 12px;
+            }
+
+            .kb-row {
+                gap: 4px;
+            }
+
+            .kb-key {
+                min-width: 28px;
+                height: 36px;
+                padding: 0 6px;
+                font-size: .7rem;
+            }
+
+            .kb-key.space {
+                min-width: 120px;
+            }
         }
     </style>
 </head>
@@ -1352,6 +1643,38 @@
         </div>
     </div>
 
+    <!-- VIRTUAL KEYBOARD -->
+    <div id="virtualKeyboard">
+        <div class="kb-header">
+            <div style="flex:1;">⌨️ Virtuelle Tastatur</div>
+            <div class="kb-mode-toggle">
+                <button class="kb-mode-btn active" id="kbModeAbc" onclick="switchKbMode('abc')">ABC</button>
+                <button class="kb-mode-btn" id="kbModeNum" onclick="switchKbMode('numbers')">123</button>
+                <button class="kb-mode-btn" id="kbModeSpecial" onclick="switchKbMode('special')">#!?</button>
+            </div>
+            <button class="kb-close" onclick="toggleKeyboard()">✕</button>
+        </div>
+        <div class="kb-rows" id="kbRows"></div>
+    </div>
+
+    <!-- KEYBOARD INDICATOR -->
+    <div id="kbIndicator" class="kb-indicator">
+        <div class="kb-indicator-mode">
+            <div class="kb-indicator-line">
+                <span class="kb-indicator-label">☝ Finger:</span>
+                <span class="kb-indicator-value" id="kbIndicatorFinger">--</span>
+            </div>
+            <div class="kb-indicator-line">
+                <span class="kb-indicator-label">✊ Faust:</span>
+                <span class="kb-indicator-value" id="kbIndicatorFist">nein</span>
+            </div>
+            <div class="kb-indicator-line">
+                <span class="kb-indicator-label">Selected:</span>
+                <span class="kb-indicator-value" id="kbIndicatorSelected">--</span>
+            </div>
+        </div>
+    </div>
+
     <div id="app"></div>
 
     <!-- MediaPipe via CDN -->
@@ -1371,7 +1694,7 @@
             userAnswer: '', feedback: '', hintsUsed: 0, usedReveal: false,
             showAnswer: false, timeLeft: TIMER_MAX, levelStartTime: 0,
             levelTimes: [], showStats: false, finalStats: null, rankInfo: null,
-            levels: [], timerRef: null
+            levels: [], timerRef: null, useKeyboard: false
         };
 
         // ─── GESTURE STATE ───
@@ -1379,14 +1702,42 @@
             active: false, fingers: 0, lastFingers: 0, holdStart: 0,
             holdTarget: null, holdProgress: 0, holdDuration: 1200,
             video: null, hands: null, camera: null, ctx: null,
-            lastAction: 0, cooldown: 2000, triggered: false
+            lastAction: 0, cooldown: 2000, triggered: false,
+            palmX: 0, palmY: 0, fistDetected: false, fistStart: 0
+        };
+
+        // ─── KEYBOARD STATE ───
+        const keyboard = {
+            enabled: false,
+            mode: 'abc',
+            layouts: {
+                abc: [
+                    ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
+                    ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
+                    ['Z', 'X', 'C', 'V', 'B', 'N', 'M']
+                ],
+                numbers: [
+                    ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
+                    ['+', '-', '*', '/', '=', '(', ')', '[', ']'],
+                    ['.', ',', ':', ';', '!', '?']
+                ],
+                special: [
+                    ['@', '#', '$', '%', '&', '_', '~', '^', '|', '\\'],
+                    ['{', '}', '<', '>', '`', '"', "'", '«', '»'],
+                    [' ', '←', '→', '↑', '↓']
+                ]
+            },
+            selectedIndex: 0,
+            selectionHistory: [],
+            palmTrackingEnabled: true,
+            fistClickDuration: 500
         };
 
         // ─── HELPERS ───
         const shuffle = arr => [...arr].sort(() => Math.random() - .5);
         const pickLevels = (pool, n) => { const s = shuffle(pool); return s.slice(0, n).map((l, i) => ({ ...l, id: i + 1 })); };
 
-        // ─── EXPLANATIONS ───
+        // ─── SELECTION TOOLTIP ───
         const EXPLANATIONS = {
             'print': { title: '🐍 print()', text: 'Gibt Text in der Konsole aus. Beispiel: print("Hallo")' },
             'len': { title: '📏 len()', text: 'Gibt die Anzahl der Elemente zurück. len("hello") = 5' },
@@ -1405,7 +1756,6 @@
             'opacity': { title: '👻 opacity', text: 'Transparenz 0-1. opacity: 0.5 = 50%' }
         };
 
-        // ─── SELECTION TOOLTIP ───
         function setupSelectionTooltip() {
             document.addEventListener('mouseup', function () {
                 const sel = window.getSelection();
@@ -1432,6 +1782,143 @@
         }
         function hideTooltip() { const t = document.getElementById('tooltip'); if (t) t.style.display = 'none'; }
 
+        // ─── VIRTUAL KEYBOARD ───
+        function initKeyboard() {
+            const container = document.getElementById('kbRows');
+            const layout = keyboard.layouts[keyboard.mode];
+            container.innerHTML = '';
+
+            layout.forEach((row, rowIdx) => {
+                const rowEl = document.createElement('div');
+                rowEl.className = 'kb-row';
+
+                row.forEach((key, colIdx) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'kb-key';
+                    btn.textContent = key;
+                    btn.dataset.key = key;
+                    btn.dataset.index = rowIdx * 10 + colIdx;
+
+                    if (key === ' ') btn.className += ' space';
+                    if (key === '←') {
+                        btn.className += ' backspace';
+                        btn.onclick = () => handleBackspace();
+                    } else if (key === '→' || key === '↑' || key === '↓') {
+                        btn.className += ' special';
+                    } else if (key === ' ') {
+                        btn.className += ' space';
+                        btn.onclick = () => handleKeyInput(' ');
+                    } else {
+                        btn.onclick = () => handleKeyInput(key.toLowerCase());
+                    }
+
+                    rowEl.appendChild(btn);
+                });
+
+                // Add enter/backspace row
+                if (rowIdx === layout.length - 1) {
+                    const backspaceBtn = document.createElement('button');
+                    backspaceBtn.className = 'kb-key backspace';
+                    backspaceBtn.textContent = '← Zurück';
+                    backspaceBtn.onclick = () => handleBackspace();
+                    rowEl.appendChild(backspaceBtn);
+
+                    const enterBtn = document.createElement('button');
+                    enterBtn.className = 'kb-key enter';
+                    enterBtn.textContent = '✓ Enter';
+                    enterBtn.onclick = () => handleKeyboardEnter();
+                    rowEl.appendChild(enterBtn);
+                }
+
+                container.appendChild(rowEl);
+            });
+
+            updateKeyboardDisplay();
+        }
+
+        function toggleKeyboard() {
+            state.useKeyboard = !state.useKeyboard;
+            const kb = document.getElementById('virtualKeyboard');
+            if (state.useKeyboard) {
+                kb.classList.add('show');
+                initKeyboard();
+            } else {
+                kb.classList.remove('show');
+            }
+        }
+
+        function switchKbMode(mode) {
+            keyboard.mode = mode;
+            document.querySelectorAll('.kb-mode-btn').forEach(btn => btn.classList.remove('active'));
+            const btnMap = { abc: 'kbModeAbc', numbers: 'kbModeNum', special: 'kbModeSpecial' };
+            document.getElementById(btnMap[mode]).classList.add('active');
+            keyboard.selectedIndex = 0;
+            initKeyboard();
+        }
+
+        function handleKeyInput(key) {
+            const input = document.querySelector('.css-input, .py-textarea, .nm-input');
+            if (input) {
+                input.value += key;
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+                state.userAnswer = input.value;
+                updateKeyboardDisplay();
+            }
+        }
+
+        function handleBackspace() {
+            const input = document.querySelector('.css-input, .py-textarea, .nm-input');
+            if (input && input.value.length > 0) {
+                input.value = input.value.slice(0, -1);
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+                state.userAnswer = input.value;
+                updateKeyboardDisplay();
+            }
+        }
+
+        function handleKeyboardEnter() {
+            const input = document.querySelector('.css-input, .py-textarea, .nm-input');
+            if (input) {
+                const event = new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true });
+                input.dispatchEvent(event);
+            }
+        }
+
+        function updateKeyboardDisplay() {
+            const keys = document.querySelectorAll('.kb-key');
+            keys.forEach((key, idx) => {
+                key.classList.remove('selected', 'pressed');
+                if (idx === keyboard.selectedIndex) {
+                    key.classList.add('selected');
+                }
+            });
+        }
+
+        function selectKeyByPosition(x, y) {
+            const keys = document.querySelectorAll('.kb-key');
+            let closest = null;
+            let minDist = Infinity;
+
+            keys.forEach(key => {
+                const rect = key.getBoundingClientRect();
+                const keyX = rect.left + rect.width / 2;
+                const keyY = rect.top + rect.height / 2;
+                const dist = Math.hypot(x - keyX, y - keyY);
+
+                if (dist < minDist) {
+                    minDist = dist;
+                    closest = key;
+                }
+            });
+
+            if (closest && minDist < 150) {
+                closest.classList.add('selected');
+                document.getElementById('kbIndicatorSelected').textContent = closest.textContent;
+                return closest;
+            }
+            return null;
+        }
+
         // ─── MEDIAPIPE HANDS ───
         function countFingers(landmarks) {
             if (!landmarks || landmarks.length < 21) return 0;
@@ -1443,6 +1930,15 @@
             }
             if (landmarks[4].x < landmarks[3].x) count++;
             return count;
+        }
+
+        function getPalmPosition(landmarks) {
+            if (!landmarks || landmarks.length < 9) return { x: 0, y: 0 };
+            const palm = landmarks[9];
+            return {
+                x: palm.x * window.innerWidth,
+                y: palm.y * window.innerHeight
+            };
         }
 
         function drawHand(landmarks, canvasCtx, w, h) {
@@ -1505,10 +2001,11 @@
                 btn.disabled = false;
                 statusEl.textContent = 'Gesten aktiv';
                 document.getElementById('gestureIcon').textContent = '✋';
+                document.getElementById('kbIndicator').classList.add('show');
             } catch (e) {
                 btn.textContent = '📷 Einschalten';
                 btn.disabled = false;
-                statusEl.textContent = '❌ Kein Kamerazugriff';
+                statusEl.textContent = '❌ Kein Zugriff';
                 console.error('Camera error:', e);
             }
         }
@@ -1522,6 +2019,7 @@
             btn.textContent = '📷 Einschalten';
             document.getElementById('gestureStatus').textContent = 'Kamera aus';
             document.getElementById('gestureIcon').textContent = '✋';
+            document.getElementById('kbIndicator').classList.remove('show');
             const canvas = document.getElementById('camCanvas');
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -1546,6 +2044,33 @@
                 const lm = results.multiHandLandmarks[0];
                 drawHand(lm, ctx, w, h);
                 fingers = countFingers(lm);
+
+                // Get palm position for keyboard
+                const palm = getPalmPosition(lm);
+                gesture.palmX = palm.x;
+                gesture.palmY = palm.y;
+
+                // Detect fist (0 fingers = closed hand)
+                const isFist = fingers === 0 && results.multiHandLandmarks.length > 0;
+                if (isFist && !gesture.fistDetected) {
+                    gesture.fistDetected = true;
+                    gesture.fistStart = Date.now();
+                } else if (!isFist) {
+                    gesture.fistDetected = false;
+                }
+
+                // Handle fist click for keyboard
+                if (gesture.fistDetected && Date.now() - gesture.fistStart > keyboard.fistClickDuration) {
+                    const selectedKey = selectKeyByPosition(gesture.palmX, gesture.palmY);
+                    if (selectedKey && !selectedKey.classList.contains('special')) {
+                        selectedKey.classList.add('pressed');
+                        const keyText = selectedKey.dataset.key;
+                        if (keyText === '← Zurück') handleBackspace();
+                        else if (keyText === '✓ Enter') handleKeyboardEnter();
+                        else handleKeyInput(keyText.toLowerCase());
+                        gesture.fistStart = Date.now() + 300;
+                    }
+                }
             }
             ctx.restore();
 
@@ -1556,8 +2081,12 @@
             if (fingers > 0) {
                 statusEl.textContent = `${fingers} ${fingers === 1 ? 'Finger' : 'Finger'}`;
             } else {
-                statusEl.textContent = 'Finger zeigen';
+                statusEl.textContent = gesture.fistDetected ? '✊ FAUST' : 'Geste';
             }
+
+            // Update keyboard indicator
+            document.getElementById('kbIndicatorFinger').textContent = fingers;
+            document.getElementById('kbIndicatorFist').textContent = gesture.fistDetected ? 'JA ✊' : 'nein';
 
             processGesture(fingers);
         }
@@ -1603,24 +2132,34 @@
             if (s === 'menu') {
                 return {
                     1: { label: '🐍 Python', sub: '1 Finger = Python', icon: '☝️', action: 'selectPython' },
-                    2: { label: '🎨 CSS', sub: '2 Finger = CSS', icon: '✌️', action: 'selectCSS' }
+                    2: { label: '🎨 CSS', sub: '2 Finger = CSS', icon: '✌️', action: 'selectCSS' },
+                    3: { label: '🏆 Rangliste', sub: '3 Finger = Rangliste', icon: '🖖', action: 'goLeaderboard' }
                 };
             }
-            // Auf dem Namens-Screen: Finger-Geste startet Spiel direkt mit gewähltem Modus
             if (s === 'namemodescreen') {
                 if (state.playerName.trim().length >= 2) {
                     return {
-                        1: { label: '⏱ Timer-Modus starten', sub: '1 Finger = sofort mit Timer spielen', icon: '☝️', action: 'startTimer' },
-                        2: { label: '🎮 Casual-Modus starten', sub: '2 Finger = sofort ohne Zeitdruck spielen', icon: '✌️', action: 'startCasual' }
+                        1: { label: '⏱ Timer-Modus', sub: '1 Finger = Timer', icon: '☝️', action: 'startTimer' },
+                        2: { label: '🎮 Casual-Modus', sub: '2 Finger = Casual', icon: '✌️', action: 'startCasual' }
                     };
                 } else {
                     return null;
                 }
             }
-            // Auf dem Spiel-Menü-Screen (Python oder CSS): 5 Finger = Spiel sofort starten
             if ((s === 'python' || s === 'css') && state.gameState === 'menu') {
                 return {
-                    5: { label: '🚀 Spiel starten!', sub: '5 Finger = sofort losspielen', icon: '🖐️', action: 'startFromGameMenu' }
+                    5: { label: '🚀 Spiel starten!', sub: '5 Finger = spielen', icon: '🖐️', action: 'startFromGameMenu' }
+                };
+            }
+            if ((s === 'python' || s === 'css') && state.gameState === 'completed') {
+                return {
+                    3: { label: '🏆 Rangliste', sub: '3 Finger = Rankings', icon: '🖖', action: 'goLeaderboard' },
+                    5: { label: '🏠 Hauptmenü', sub: '5 Finger = Menü', icon: '🖐️', action: 'backToMenu' }
+                };
+            }
+            if (s === 'leaderboard') {
+                return {
+                    3: { label: '🏠 Hauptmenü', sub: '3 Finger = Zurück', icon: '🖖', action: 'backToMenu' }
                 };
             }
             return null;
@@ -1652,10 +2191,11 @@
                     startGame();
                     break;
                 case 'startFromGameMenu':
-                    // 5 Finger auf Python/CSS-Menü: Spiel sofort starten
                     if (state.screen === 'python') startPythonGame();
                     else if (state.screen === 'css') startCssGame();
                     break;
+                case 'goLeaderboard': goLeaderboard(); break;
+                case 'backToMenu': backToMenu(); break;
             }
         }
 
@@ -1726,7 +2266,7 @@
         <div class="menu-title">🐜 Bug Hunter</div>
         <div class="menu-sub">Academy — wähle deinen Kurs</div>
         <div style="font-family:'Space Mono',monospace;font-size:.65rem;color:#3d5080;margin-top:8px;padding:8px 12px;background:rgba(61,111,255,.05);border-radius:8px;border:1px solid rgba(61,111,255,.1);">
-          ✋ Gesten: ☝️ 1 Finger = Python &nbsp;|&nbsp; ✌️ 2 Finger = CSS
+          ✋ Gesten: ☝️ 1 Finger = Python &nbsp;|&nbsp; ✌️ 2 Finger = CSS &nbsp;|&nbsp; 🖖 3 Finger = Rangliste
         </div>
         <div class="menu-divider"></div>
         <div style="display:flex;flex-direction:column;gap:14px;">
@@ -1778,8 +2318,8 @@
 
         <div style="background:rgba(61,111,255,.06);border:1px solid rgba(61,111,255,.15);border-radius:10px;padding:10px 14px;margin-bottom:18px;font-family:'Space Mono',monospace;font-size:.68rem;color:#7fa8ff;line-height:1.7;">
           ✋ Gesten (nach Namenseingabe):<br>
-          ☝️ <strong>1 Finger</strong> = sofort mit <strong style="color:#3d6fff;">⏱ Timer-Modus</strong> starten<br>
-          ✌️ <strong>2 Finger</strong> = sofort mit <strong style="color:#ffd060;">🎮 Casual-Modus</strong> starten
+          ☝️ <strong>1 Finger</strong> = sofort mit <strong style="color:#3d6fff;">⏱ Timer-Modus</strong><br>
+          ✌️ <strong>2 Finger</strong> = sofort mit <strong style="color:#ffd060;">🎮 Casual-Modus</strong>
         </div>
 
         <div style="margin-bottom:20px;">
@@ -1787,6 +2327,7 @@
           <input type="text" class="nm-input" id="playerNameInput" value="${state.playerName}" placeholder="Name eingeben..." maxlength="20"
             oninput="updatePlayerName(this.value)"
             onkeydown="if(event.key==='Enter'&&${canStart}) startGame()">
+          <button onclick="toggleKeyboard()" style="width:100%;margin-top:10px;padding:8px;font-family:'Space Mono',monospace;font-size:.7rem;background:rgba(61,111,255,.1);border:1px solid rgba(61,111,255,.2);color:#7fa8ff;border-radius:8px;cursor:pointer;">⌨️ Virtuelle Tastatur</button>
         </div>
         <div style="font-family:'Space Mono',monospace;font-size:.72rem;color:#6b7280;margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;">Modus wählen</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:28px;">
@@ -1839,8 +2380,8 @@
           <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:#7a3010;margin-bottom:10px;">📋 Was erwartet dich?</div>
           <div style="display:flex;flex-direction:column;gap:7px;color:#6a4030;font-size:.88rem;">
             <div>✅ Level 1–4: Bewegung mit left, right, top, bottom</div>
-            <div>✅ Level 5–7: Größe, Farbe &amp; Effekte</div>
-            <div>✅ Level 8–10: Transform, Opacity &amp; Boss-Level</div>
+            <div>✅ Level 5–7: Größe, Farbe & Effekte</div>
+            <div>✅ Level 8–10: Transform, Opacity & Boss-Level</div>
             <div style="margin-top:6px;color:#ff6b2b;font-weight:600;">${state.timerMode ? '⏱ Punkte = Zeit × Basispunkte' : '🌾 100 ohne Tipp · 50 mit Tipp · 0 mit Antwort'}</div>
           </div>
         </div>
@@ -1877,8 +2418,11 @@
           <div class="css-story">${level.story}</div>
           <div class="css-demo-box"><div class="css-ant" style="${getAntStyles(level, state.userAnswer)}">🐜</div></div>
           <div class="css-code-block">.ant {\n  position: absolute;\n  ${state.userAnswer || '/* hier schreiben... */'}\n}</div>
-          <input type="text" class="css-input" id="cssInput" value="${state.userAnswer}" placeholder="z.B. left: 50px;"
-            oninput="updateAnswer(this.value)" onkeydown="if(event.key==='Enter') checkCssAnswer()">
+          <div class="css-input-wrapper">
+            <button class="css-input-toggle" onclick="toggleKeyboard()">⌨️ Tastatur</button>
+            <input type="text" class="css-input" id="cssInput" value="${state.userAnswer}" placeholder="z.B. left: 50px;"
+              oninput="state.userAnswer = this.value; updateCssPreview()" onkeydown="if(event.key==='Enter') checkCssAnswer()">
+          </div>
           ${renderCssHintSection(level)}
           ${renderFeedback()}
           <div style="display:flex;gap:12px;">
@@ -1888,6 +2432,19 @@
         </div>
       </div>
     </div>`;
+        }
+
+        function updateCssPreview() {
+            const codeBlock = document.querySelector('.css-code-block');
+            if (codeBlock) {
+                const level = state.levels[state.currentLevel];
+                codeBlock.textContent = `.ant {\n  position: absolute;\n  ${state.userAnswer || '/* hier schreiben... */'}\n}`;
+            }
+            const antEl = document.querySelector('.css-ant');
+            if (antEl) {
+                const level = state.levels[state.currentLevel];
+                antEl.style.cssText = getAntStyles(level, state.userAnswer);
+            }
         }
 
         function getAntStyles(level, userAnswer) {
@@ -1968,6 +2525,9 @@
           </div>
         </div>
         ${state.rankInfo ? `<div style="padding:12px;background:rgba(255,107,43,.08);border:1px solid rgba(255,107,43,.2);border-radius:10px;margin-bottom:16px;font-family:'Space Mono',monospace;font-size:.85rem;color:#cc4400;">🏆 Platz <strong>#${state.rankInfo.rank}</strong> von ${state.rankInfo.total}</div>` : ''}
+        <div style="background:rgba(255,107,43,.1);border:1px solid rgba(255,107,43,.25);border-radius:10px;padding:12px;margin-bottom:16px;font-family:'Space Mono',monospace;font-size:.75rem;color:#ff9860;">
+          🖖 <strong>3 Finger</strong> = Rangliste &nbsp;|&nbsp; 🖐️ <strong>5 Finger</strong> = Menü
+        </div>
         <div style="display:flex;gap:12px;">
           <button class="css-btn-primary" onclick="resetGame()">🔄 Nochmal</button>
           <button class="css-btn-secondary" onclick="backToMenu()">🏠 Menü</button>
@@ -2040,10 +2600,13 @@
             ${level.codeLines.map((line, idx) => `<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:9px 13px;margin-bottom:7px;font-family:'Space Mono',monospace;font-size:.78rem;color:#a8b4d8;"><span style="color:#3d6fff;font-weight:700;margin-right:10px;">${idx}</span>${line || '(leer)'}</div>`).join('')}
           </div>`: ''}
           ${renderPythonHintSection(level)}
-          <div style="margin-bottom:7px;font-family:'Space Mono',monospace;font-size:.72rem;color:#6b7280;">
-            ${level.type === 'Ordne' ? '📝 Reihenfolge (z.B. 1,0 oder 2,3,0,1):' : '📝 Deine Antwort:'}
+          <div class="py-input-wrapper">
+            <button class="py-input-toggle" onclick="toggleKeyboard()">⌨️ Tastatur</button>
+            <div style="margin-bottom:7px;font-family:'Space Mono',monospace;font-size:.72rem;color:#6b7280;">
+              ${level.type === 'Ordne' ? '📝 Reihenfolge (z.B. 1,0 oder 2,3,0,1):' : '📝 Deine Antwort:'}
+            </div>
+            <textarea class="py-textarea" id="pyInput" placeholder="Antwort hier..." rows="3" oninput="state.userAnswer = this.value">${state.userAnswer}</textarea>
           </div>
-          <textarea class="py-textarea" id="pyInput" placeholder="Antwort hier..." rows="3" oninput="updateAnswer(this.value)">${state.userAnswer}</textarea>
           ${renderFeedback()}
           <div style="display:flex;gap:12px;">
             <button class="py-btn-primary" onclick="checkPythonAnswer()">✅ Prüfen</button>
@@ -2114,6 +2677,9 @@
           </div>
         </div>
         ${state.rankInfo ? `<div style="padding:12px;background:rgba(61,111,255,.08);border:1px solid rgba(61,111,255,.2);border-radius:10px;margin-bottom:16px;font-family:'Space Mono',monospace;font-size:.85rem;color:#7fa8ff;">🏆 Platz <strong style="color:#ffd060;">#${state.rankInfo.rank}</strong> von ${state.rankInfo.total}</div>` : ''}
+        <div style="background:rgba(61,111,255,.1);border:1px solid rgba(61,111,255,.25);border-radius:10px;padding:12px;margin-bottom:16px;font-family:'Space Mono',monospace;font-size:.75rem;color:#7fa8ff;">
+          🖖 <strong>3 Finger</strong> = Rangliste &nbsp;|&nbsp; 🖐️ <strong>5 Finger</strong> = Menü
+        </div>
         <div style="display:flex;gap:12px;">
           <button class="py-btn-primary" onclick="resetGame()">🔄 Nochmal</button>
           <button class="py-btn-secondary" onclick="backToMenu()">🏠 Menü</button>
@@ -2223,7 +2789,14 @@
                 state.timerRef = setInterval(() => {
                     state.timeLeft--;
                     if (state.timeLeft <= 0) { clearInterval(state.timerRef); handleTimeout(); }
-                    render();
+                    const timerEl = document.querySelector('.timer-number');
+                    if (timerEl) {
+                        const isDanger = state.timeLeft <= 10;
+                        const color = state.timeLeft > 60 ? '#00d4aa' : state.timeLeft > 30 ? '#ffd060' : '#ff5555';
+                        timerEl.textContent = Math.floor(state.timeLeft / 60) + ':' + String(state.timeLeft % 60).padStart(2, '0');
+                        timerEl.style.color = color;
+                        timerEl.style.fontSize = isDanger ? '1.3rem' : '1.05rem';
+                    }
                 }, 1000);
             }
         }
@@ -2294,7 +2867,8 @@
 
         function backToMenu() {
             clearInterval(state.timerRef);
-            Object.assign(state, { screen: 'menu', gameMode: null, gameState: 'menu', currentLevel: 0, score: 0, userAnswer: '', feedback: '', showHint: false, hintsUsed: 0, usedReveal: false, showAnswer: false, timeLeft: TIMER_MAX, levelTimes: [], finalStats: null, rankInfo: null });
+            Object.assign(state, { screen: 'menu', gameMode: null, gameState: 'menu', currentLevel: 0, score: 0, userAnswer: '', feedback: '', showHint: false, hintsUsed: 0, usedReveal: false, showAnswer: false, timeLeft: TIMER_MAX, levelTimes: [], finalStats: null, rankInfo: null, useKeyboard: false });
+            document.getElementById('virtualKeyboard').classList.remove('show');
             render();
         }
 
@@ -2304,7 +2878,7 @@
         function revealAnswer() { state.usedReveal = true; completeLevel(0); }
         function updatePlayerName(name) { state.playerName = name; }
         function switchMode(timerMode) { state.timerMode = timerMode; render(); }
-        function updateAnswer(answer) { state.userAnswer = answer; render(); }
+        function updateAnswer(answer) { state.userAnswer = answer; }
 
         // ─── INIT ───
         setupSelectionTooltip();
