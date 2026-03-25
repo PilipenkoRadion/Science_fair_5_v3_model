@@ -1,0 +1,2315 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐜 Bug Hunter Academy</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --py-bg: #0d0f1a;
+            --py-surface: #141626;
+            --py-border: #252840;
+            --py-accent: #3d6fff;
+            --py-accent2: #00d4aa;
+            --py-text: #e2e6f3;
+            --py-muted: #6b7280;
+            --css-bg: #fff8f0;
+            --css-surface: #ffffff;
+            --css-border: #ffd9b3;
+            --css-accent: #ff6b2b;
+            --css-accent2: #ff3d7f;
+            --css-text: #1a0a00;
+            --css-muted: #9a6a50
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif
+        }
+
+        /* GESTURE OVERLAY */
+        #gestureOverlay {
+            position: fixed;
+            top: 12px;
+            right: 12px;
+            z-index: 9999;
+            background: rgba(13, 15, 26, .92);
+            border: 1px solid rgba(61, 111, 255, .3);
+            border-radius: 16px;
+            padding: 10px 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            backdrop-filter: blur(12px);
+            min-width: 140px
+        }
+
+        #camCanvas {
+            width: 120px;
+            height: 90px;
+            border-radius: 10px;
+            border: 1px solid rgba(61, 111, 255, .2);
+            object-fit: cover;
+            transform: scaleX(-1)
+        }
+
+        #gestureStatus {
+            font-family: 'Space Mono', monospace;
+            font-size: .65rem;
+            color: #7fa8ff;
+            text-align: center;
+            line-height: 1.4
+        }
+
+        #gestureIcon {
+            font-size: 1.6rem;
+            min-height: 1.8rem
+        }
+
+        #gestureToggle {
+            font-family: 'Space Mono', monospace;
+            font-size: .6rem;
+            padding: 4px 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(61, 111, 255, .3);
+            background: transparent;
+            color: #6b7280;
+            cursor: pointer;
+            margin-top: 2px
+        }
+
+        /* GESTURE HINT POPUP */
+        #gestureHint {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10000;
+            background: rgba(13, 15, 26, .98);
+            border: 2px solid rgba(61, 111, 255, .4);
+            border-radius: 20px;
+            padding: 28px 32px;
+            text-align: center;
+            display: none;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 0 80px rgba(61, 111, 255, .3);
+            max-width: 320px;
+            width: 90%
+        }
+
+        #gestureHint.show {
+            display: block;
+            animation: popIn .4s cubic-bezier(.34, 1.56, .64, 1)
+        }
+
+        .gh-icon {
+            font-size: 3.5rem;
+            margin-bottom: 8px
+        }
+
+        .gh-title {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 1.6rem;
+            background: linear-gradient(135deg, #3d6fff, #00d4aa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 6px
+        }
+
+        .gh-sub {
+            font-family: 'Space Mono', monospace;
+            font-size: .75rem;
+            color: #6b7280;
+            margin-bottom: 16px
+        }
+
+        .gh-bar {
+            height: 4px;
+            background: rgba(61, 111, 255, .15);
+            border-radius: 2px;
+            overflow: hidden
+        }
+
+        .gh-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3d6fff, #00d4aa);
+            transition: width .1s linear
+        }
+
+        /* SELECTION TOOLTIP */
+        .selection-tooltip {
+            position: fixed;
+            background: rgba(20, 22, 38, .98);
+            border: 1px solid rgba(61, 111, 255, .4);
+            border-radius: 12px;
+            padding: 14px 18px;
+            max-width: 380px;
+            z-index: 1000;
+            box-shadow: 0 8px 32px rgba(61, 111, 255, .25);
+            backdrop-filter: blur(20px);
+            animation: tooltipSlideIn .2s ease-out;
+            pointer-events: none
+        }
+
+        .selection-tooltip-title {
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: .95rem;
+            color: #7fa8ff;
+            margin-bottom: 6px
+        }
+
+        .selection-tooltip-text {
+            font-family: 'Space Mono', monospace;
+            font-size: .8rem;
+            color: #9aa3b5;
+            line-height: 1.5;
+            margin-bottom: 8px
+        }
+
+        .selection-tooltip-code {
+            background: #0a0c14;
+            border: 1px solid rgba(61, 111, 255, .2);
+            border-radius: 6px;
+            padding: 8px 10px;
+            color: #00d4aa;
+            font-size: .75rem;
+            font-weight: 600;
+            font-family: 'Space Mono', monospace
+        }
+
+        @keyframes tooltipSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-8px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        /* GRID & GLOWS */
+        .menu-root {
+            min-height: 100vh;
+            background: #08090f;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative
+        }
+
+        .menu-grid {
+            position: absolute;
+            inset: 0;
+            background-image: linear-gradient(rgba(61, 111, 255, .07) 1px, transparent 1px), linear-gradient(90deg, rgba(61, 111, 255, .07) 1px, transparent 1px);
+            background-size: 40px 40px
+        }
+
+        .menu-glow {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: .35;
+            animation: floatGlow 8s ease-in-out infinite
+        }
+
+        .menu-glow-1 {
+            width: 500px;
+            height: 500px;
+            background: #3d6fff;
+            top: -100px;
+            left: -100px
+        }
+
+        .menu-glow-2 {
+            width: 400px;
+            height: 400px;
+            background: #ff6b2b;
+            bottom: -80px;
+            right: -80px;
+            animation-delay: -4s
+        }
+
+        @keyframes floatGlow {
+
+            0%,
+            100% {
+                transform: translate(0, 0) scale(1)
+            }
+
+            50% {
+                transform: translate(20px, 30px) scale(1.08)
+            }
+        }
+
+        /* MENU CARD */
+        .menu-card {
+            position: relative;
+            z-index: 10;
+            background: rgba(20, 22, 38, .85);
+            border: 1px solid rgba(61, 111, 255, .25);
+            border-radius: 24px;
+            padding: 52px 44px;
+            max-width: 780px;
+            width: 92%;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 0 80px rgba(61, 111, 255, .12), 0 40px 80px rgba(0, 0, 0, .6)
+        }
+
+        .menu-title {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(2.2rem, 6vw, 3.8rem);
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff 30%, #3d6fff 70%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
+            line-height: 1
+        }
+
+        .menu-sub {
+            font-family: 'Space Mono', monospace;
+            color: #6b7280;
+            font-size: .8rem;
+            margin-top: 8px;
+            letter-spacing: 2px;
+            text-transform: uppercase
+        }
+
+        .menu-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(61, 111, 255, .4), transparent);
+            margin: 28px 0
+        }
+
+        .game-card {
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, .08);
+            padding: 24px;
+            cursor: pointer;
+            transition: all .3s cubic-bezier(.34, 1.56, .64, 1);
+            position: relative;
+            overflow: hidden
+        }
+
+        .game-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            transition: opacity .3s
+        }
+
+        .game-card:hover {
+            transform: translateY(-4px) scale(1.01)
+        }
+
+        .game-card:hover::before {
+            opacity: 1
+        }
+
+        .game-card:active {
+            transform: scale(.98)
+        }
+
+        .game-card-py {
+            background: linear-gradient(135deg, rgba(61, 111, 255, .1), rgba(0, 212, 170, .05))
+        }
+
+        .game-card-py::before {
+            background: linear-gradient(135deg, rgba(61, 111, 255, .18), rgba(0, 212, 170, .12))
+        }
+
+        .game-card-py:hover {
+            border-color: rgba(61, 111, 255, .5);
+            box-shadow: 0 8px 32px rgba(61, 111, 255, .2)
+        }
+
+        .game-card-css {
+            background: linear-gradient(135deg, rgba(255, 107, 43, .1), rgba(255, 61, 127, .05))
+        }
+
+        .game-card-css::before {
+            background: linear-gradient(135deg, rgba(255, 107, 43, .18), rgba(255, 61, 127, .12))
+        }
+
+        .game-card-css:hover {
+            border-color: rgba(255, 107, 43, .5);
+            box-shadow: 0 8px 32px rgba(255, 107, 43, .2)
+        }
+
+        .game-badge {
+            font-family: 'Space Mono', monospace;
+            font-size: .68rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            display: inline-block;
+            margin-bottom: 10px
+        }
+
+        .badge-py {
+            background: rgba(61, 111, 255, .2);
+            color: #7fa8ff;
+            border: 1px solid rgba(61, 111, 255, .3)
+        }
+
+        .badge-css {
+            background: rgba(255, 107, 43, .2);
+            color: #ff9870;
+            border: 1px solid rgba(255, 107, 43, .3)
+        }
+
+        .game-card-title {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 1.5rem;
+            color: #fff
+        }
+
+        .game-card-desc {
+            color: #9aa3b5;
+            font-size: .88rem;
+            margin-top: 6px;
+            line-height: 1.5
+        }
+
+        .game-card-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 16px
+        }
+
+        .levels-pill {
+            font-family: 'Space Mono', monospace;
+            font-size: .72rem;
+            color: #6b7280
+        }
+
+        .play-btn {
+            font-family: 'Syne', sans-serif;
+            font-size: .88rem;
+            font-weight: 700;
+            padding: 9px 22px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            transition: all .2s
+        }
+
+        .play-btn-py {
+            background: linear-gradient(135deg, #3d6fff, #00d4aa);
+            color: #fff
+        }
+
+        .play-btn-css {
+            background: linear-gradient(135deg, #ff6b2b, #ff3d7f);
+            color: #fff
+        }
+
+        /* GESTURE INDICATOR ON CARD */
+        .gesture-label {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            font-family: 'Space Mono', monospace;
+            font-size: .65rem;
+            padding: 3px 8px;
+            border-radius: 8px;
+            opacity: .7
+        }
+
+        .gesture-label-py {
+            background: rgba(61, 111, 255, .15);
+            color: #7fa8ff;
+            border: 1px solid rgba(61, 111, 255, .2)
+        }
+
+        .gesture-label-css {
+            background: rgba(255, 107, 43, .15);
+            color: #ff9870;
+            border: 1px solid rgba(255, 107, 43, .2)
+        }
+
+        /* BACK BTN */
+        .back-btn {
+            font-family: 'Space Mono', monospace;
+            font-size: .72rem;
+            padding: 7px 14px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, .15);
+            background: rgba(255, 255, 255, .06);
+            color: rgba(255, 255, 255, .6);
+            cursor: pointer;
+            transition: all .2s;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 6px
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, .12);
+            color: #fff
+        }
+
+        /* NAME/MODE SCREEN */
+        .nm-input {
+            width: 100%;
+            padding: 16px 20px;
+            background: rgba(255, 255, 255, .04);
+            border: 1px solid rgba(61, 111, 255, .25);
+            border-radius: 14px;
+            color: #fff;
+            font-family: 'Space Mono', monospace;
+            font-size: 1.1rem;
+            outline: none;
+            transition: border-color .2s;
+            text-align: center
+        }
+
+        .nm-input:focus {
+            border-color: #3d6fff;
+            box-shadow: 0 0 0 3px rgba(61, 111, 255, .12)
+        }
+
+        .nm-input::placeholder {
+            color: #3a3f55
+        }
+
+        .mode-card {
+            border-radius: 14px;
+            border: 2px solid rgba(255, 255, 255, .06);
+            padding: 20px 24px;
+            cursor: pointer;
+            transition: all .25s;
+            position: relative
+        }
+
+        .mode-card:hover {
+            transform: translateY(-2px)
+        }
+
+        .mode-card.selected-timer {
+            border-color: #3d6fff;
+            background: rgba(61, 111, 255, .1);
+            box-shadow: 0 0 20px rgba(61, 111, 255, .15)
+        }
+
+        .mode-card.selected-casual {
+            border-color: #ffd060;
+            background: rgba(255, 208, 96, .07);
+            box-shadow: 0 0 20px rgba(255, 208, 96, .1)
+        }
+
+        .mode-gesture-label {
+            position: absolute;
+            bottom: 10px;
+            right: 12px;
+            font-family: 'Space Mono', monospace;
+            font-size: .6rem;
+            color: #3d5080
+        }
+
+        /* TIMER RING */
+        .timer-ring-wrap {
+            position: relative;
+            width: 72px;
+            height: 72px;
+            flex-shrink: 0
+        }
+
+        .timer-ring-wrap svg {
+            transform: rotate(-90deg)
+        }
+
+        .timer-number {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            font-size: 1.1rem
+        }
+
+        .timer-danger {
+            animation: timerPulse .5s ease-in-out infinite
+        }
+
+        @keyframes timerPulse {
+
+            0%,
+            100% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: .4
+            }
+        }
+
+        /* CSS GAME */
+        .css-root {
+            min-height: 100vh;
+            background: var(--css-bg);
+            font-family: 'DM Sans', sans-serif;
+            color: var(--css-text)
+        }
+
+        .css-blob {
+            position: fixed;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+            filter: blur(80px);
+            opacity: .18
+        }
+
+        .css-blob-1 {
+            width: 400px;
+            height: 400px;
+            background: #ff6b2b;
+            top: -100px;
+            right: -100px
+        }
+
+        .css-blob-2 {
+            width: 300px;
+            height: 300px;
+            background: #ff3d7f;
+            bottom: -60px;
+            left: -60px
+        }
+
+        .css-header {
+            position: relative;
+            z-index: 2;
+            background: rgba(255, 255, 255, .9);
+            border-bottom: 2px solid var(--css-border);
+            backdrop-filter: blur(10px);
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 20px rgba(255, 107, 43, .08)
+        }
+
+        .css-header-title {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 1.3rem;
+            background: linear-gradient(135deg, #ff6b2b, #ff3d7f);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent
+        }
+
+        .css-score-pill {
+            background: linear-gradient(135deg, #ff6b2b, #ff3d7f);
+            color: #fff;
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            font-size: .95rem;
+            padding: 7px 18px;
+            border-radius: 999px;
+            box-shadow: 0 4px 16px rgba(255, 107, 43, .3)
+        }
+
+        .css-progress-bar {
+            height: 4px;
+            background: rgba(255, 107, 43, .15)
+        }
+
+        .css-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b2b, #ff3d7f);
+            transition: width .4s cubic-bezier(.34, 1.56, .64, 1)
+        }
+
+        .css-main {
+            position: relative;
+            z-index: 2;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 28px 18px
+        }
+
+        .css-card {
+            background: #fff;
+            border: 2px solid var(--css-border);
+            border-radius: 20px;
+            padding: 32px;
+            box-shadow: 0 4px 32px rgba(255, 107, 43, .06);
+            margin-bottom: 18px
+        }
+
+        .css-level-title {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 1.9rem;
+            color: var(--css-text);
+            margin-bottom: 4px
+        }
+
+        .css-story {
+            color: var(--css-muted);
+            font-size: 1rem;
+            margin-bottom: 18px
+        }
+
+        .css-demo-box {
+            width: 100%;
+            height: 240px;
+            border: 2px dashed #ffb899;
+            background: linear-gradient(135deg, #fff8f4, #fff0e8);
+            border-radius: 14px;
+            position: relative;
+            margin: 14px 0;
+            overflow: hidden
+        }
+
+        .css-ant {
+            width: 44px;
+            height: 44px;
+            background: #8B4513;
+            border-radius: 50%;
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 22px;
+            transition: all .35s cubic-bezier(.34, 1.56, .64, 1);
+            box-shadow: 0 4px 12px rgba(139, 69, 19, .3)
+        }
+
+        .css-code-block {
+            background: #1a0e06;
+            border: 1px solid #3a2010;
+            border-radius: 12px;
+            padding: 18px 22px;
+            font-family: 'Space Mono', monospace;
+            font-size: .8rem;
+            color: #ff9870;
+            margin-bottom: 14px;
+            white-space: pre;
+            overflow-x: auto;
+            user-select: text;
+            cursor: text
+        }
+
+        .css-input {
+            width: 100%;
+            padding: 13px 16px;
+            border: 2px solid var(--css-border);
+            border-radius: 12px;
+            font-family: 'Space Mono', monospace;
+            font-size: .88rem;
+            color: var(--css-text);
+            background: #fff;
+            outline: none;
+            transition: border-color .2s;
+            margin-bottom: 14px
+        }
+
+        .css-input:focus {
+            border-color: #ff6b2b;
+            box-shadow: 0 0 0 3px rgba(255, 107, 43, .12)
+        }
+
+        .css-btn-primary {
+            background: linear-gradient(135deg, #ff6b2b, #ff3d7f);
+            color: #fff;
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: .95rem;
+            padding: 13px 26px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all .2s;
+            flex: 1
+        }
+
+        .css-btn-primary:hover {
+            box-shadow: 0 6px 24px rgba(255, 107, 43, .4);
+            transform: translateY(-1px)
+        }
+
+        .css-btn-secondary {
+            background: #f5ede6;
+            color: #9a6a50;
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: .95rem;
+            padding: 13px 26px;
+            border: 2px solid var(--css-border);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all .2s;
+            flex: 1
+        }
+
+        .css-btn-secondary:hover {
+            background: #ffe8d8
+        }
+
+        .css-hint-box {
+            background: #fff8f4;
+            border: 2px solid #ffb899;
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin-bottom: 14px;
+            font-size: .83rem;
+            color: #7a3010;
+            user-select: text
+        }
+
+        .css-hint-btn {
+            background: transparent;
+            border: 2px solid #ff6b2b;
+            color: #ff6b2b;
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: .83rem;
+            padding: 8px 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all .2s;
+            margin-bottom: 14px
+        }
+
+        .css-hint-btn:hover {
+            background: rgba(255, 107, 43, .08)
+        }
+
+        .css-feedback-ok {
+            background: #f0fff8;
+            border: 2px solid #00c878;
+            border-radius: 12px;
+            padding: 13px 18px;
+            color: #006840;
+            font-weight: 700;
+            margin-bottom: 14px
+        }
+
+        .css-feedback-err {
+            background: #fff4f4;
+            border: 2px solid #ff4444;
+            border-radius: 12px;
+            padding: 13px 18px;
+            color: #aa0000;
+            font-weight: 700;
+            margin-bottom: 14px
+        }
+
+        .css-complete-root {
+            min-height: 100vh;
+            background: var(--css-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow: hidden
+        }
+
+        .css-menu-root {
+            min-height: 100vh;
+            background: var(--css-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow: hidden
+        }
+
+        .css-menu-card {
+            background: #fff;
+            border: 2px solid var(--css-border);
+            border-radius: 24px;
+            padding: 48px 40px;
+            max-width: 680px;
+            width: 100%;
+            box-shadow: 0 8px 60px rgba(255, 107, 43, .1);
+            position: relative;
+            z-index: 2
+        }
+
+        .css-menu-title {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: clamp(2.2rem, 5vw, 3.2rem);
+            background: linear-gradient(135deg, #ff6b2b, #ff3d7f);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 4px
+        }
+
+        /* PYTHON GAME */
+        .py-root {
+            min-height: 100vh;
+            background: var(--py-bg);
+            font-family: 'DM Sans', sans-serif;
+            color: var(--py-text)
+        }
+
+        .py-scanlines {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 1;
+            background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 0, 0, .04) 2px, rgba(0, 0, 0, .04) 4px)
+        }
+
+        .py-header {
+            position: relative;
+            z-index: 3;
+            background: rgba(20, 22, 38, .95);
+            border-bottom: 1px solid var(--py-border);
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            backdrop-filter: blur(10px)
+        }
+
+        .py-header-title {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 1.3rem;
+            background: linear-gradient(135deg, #3d6fff, #00d4aa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent
+        }
+
+        .py-score-pill {
+            background: rgba(61, 111, 255, .15);
+            border: 1px solid rgba(61, 111, 255, .3);
+            color: #7fa8ff;
+            font-family: 'Space Mono', monospace;
+            font-size: .95rem;
+            padding: 7px 18px;
+            border-radius: 999px
+        }
+
+        .py-progress-bar {
+            height: 3px;
+            background: rgba(61, 111, 255, .1)
+        }
+
+        .py-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3d6fff, #00d4aa);
+            transition: width .4s cubic-bezier(.34, 1.56, .64, 1)
+        }
+
+        .py-main {
+            position: relative;
+            z-index: 2;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 28px 18px
+        }
+
+        .py-card {
+            background: var(--py-surface);
+            border: 1px solid var(--py-border);
+            border-radius: 20px;
+            padding: 32px;
+            margin-bottom: 18px;
+            box-shadow: 0 4px 32px rgba(0, 0, 0, .3)
+        }
+
+        .py-level-title {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 1.9rem;
+            color: #fff
+        }
+
+        .py-story {
+            color: var(--py-muted);
+            font-size: 1rem;
+            margin: 6px 0 18px
+        }
+
+        .py-type-badge {
+            font-family: 'Space Mono', monospace;
+            font-size: .68rem;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 999px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: inline-block;
+            margin-bottom: 10px
+        }
+
+        .badge-fix {
+            background: rgba(255, 80, 80, .12);
+            border: 1px solid rgba(255, 80, 80, .25);
+            color: #ff8080
+        }
+
+        .badge-find {
+            background: rgba(255, 200, 0, .1);
+            border: 1px solid rgba(255, 200, 0, .2);
+            color: #ffd060
+        }
+
+        .badge-sort {
+            background: rgba(0, 212, 170, .1);
+            border: 1px solid rgba(0, 212, 170, .2);
+            color: #00d4aa
+        }
+
+        .py-code-block {
+            background: #0a0c14;
+            border: 1px solid #1e2240;
+            border-radius: 12px;
+            padding: 18px 22px;
+            font-family: 'Space Mono', monospace;
+            font-size: .8rem;
+            color: #a8b4d8;
+            margin-bottom: 14px;
+            white-space: pre;
+            overflow-x: auto;
+            user-select: text;
+            cursor: text
+        }
+
+        .py-textarea {
+            width: 100%;
+            padding: 13px 16px;
+            background: #0a0c14;
+            border: 1px solid var(--py-border);
+            border-radius: 12px;
+            color: #a8b4d8;
+            font-family: 'Space Mono', monospace;
+            font-size: .86rem;
+            resize: vertical;
+            outline: none;
+            transition: border-color .2s;
+            margin-bottom: 14px
+        }
+
+        .py-textarea:focus {
+            border-color: #3d6fff;
+            box-shadow: 0 0 0 3px rgba(61, 111, 255, .1)
+        }
+
+        .py-btn-primary {
+            background: linear-gradient(135deg, #3d6fff, #00d4aa);
+            color: #fff;
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: .95rem;
+            padding: 13px 26px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all .2s;
+            flex: 1
+        }
+
+        .py-btn-primary:hover {
+            box-shadow: 0 6px 24px rgba(61, 111, 255, .35);
+            transform: translateY(-1px)
+        }
+
+        .py-btn-secondary {
+            background: rgba(255, 255, 255, .05);
+            color: var(--py-muted);
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: .95rem;
+            padding: 13px 26px;
+            border: 1px solid var(--py-border);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all .2s;
+            flex: 1
+        }
+
+        .py-btn-secondary:hover {
+            background: rgba(255, 255, 255, .08)
+        }
+
+        .py-hint-btn {
+            background: transparent;
+            border: 1px solid rgba(61, 111, 255, .3);
+            color: #7fa8ff;
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: .83rem;
+            padding: 8px 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all .2s;
+            margin-bottom: 14px
+        }
+
+        .py-hint-btn:hover {
+            background: rgba(61, 111, 255, .08)
+        }
+
+        .py-hint-box {
+            background: rgba(61, 111, 255, .06);
+            border: 1px solid rgba(61, 111, 255, .2);
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin-bottom: 14px;
+            font-family: 'Space Mono', monospace;
+            font-size: .8rem;
+            color: #7fa8ff;
+            user-select: text
+        }
+
+        .py-feedback-ok {
+            background: rgba(0, 212, 170, .08);
+            border: 1px solid rgba(0, 212, 170, .3);
+            border-radius: 12px;
+            padding: 13px 18px;
+            color: #00d4aa;
+            font-weight: 700;
+            margin-bottom: 14px
+        }
+
+        .py-feedback-err {
+            background: rgba(255, 80, 80, .08);
+            border: 1px solid rgba(255, 80, 80, .25);
+            border-radius: 12px;
+            padding: 13px 18px;
+            color: #ff8080;
+            font-weight: 700;
+            margin-bottom: 14px
+        }
+
+        .py-menu-root {
+            min-height: 100vh;
+            background: var(--py-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow: hidden
+        }
+
+        .py-menu-card {
+            background: var(--py-surface);
+            border: 1px solid var(--py-border);
+            border-radius: 24px;
+            padding: 48px 40px;
+            max-width: 680px;
+            width: 100%;
+            position: relative;
+            z-index: 2;
+            box-shadow: 0 0 80px rgba(61, 111, 255, .08), 0 40px 80px rgba(0, 0, 0, .5)
+        }
+
+        .py-menu-title {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: clamp(2.2rem, 5vw, 3.2rem);
+            background: linear-gradient(135deg, #3d6fff, #00d4aa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent
+        }
+
+        .py-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(61, 111, 255, .3), transparent);
+            margin: 24px 0
+        }
+
+        /* LEADERBOARD */
+        .lb-root {
+            min-height: 100vh;
+            background: #08090f;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            position: relative;
+            overflow: hidden
+        }
+
+        .lb-card {
+            background: rgba(20, 22, 38, .9);
+            border: 1px solid rgba(61, 111, 255, .2);
+            border-radius: 20px;
+            padding: 36px 32px;
+            max-width: 780px;
+            width: 100%;
+            position: relative;
+            z-index: 2;
+            backdrop-filter: blur(20px)
+        }
+
+        .lb-row {
+            display: grid;
+            grid-template-columns: 40px 1fr 80px 70px 70px 70px;
+            gap: 8px;
+            align-items: center;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: .85rem;
+            transition: background .2s;
+            user-select: text
+        }
+
+        .lb-row:hover {
+            background: rgba(61, 111, 255, .06)
+        }
+
+        .lb-row.highlight {
+            background: rgba(61, 111, 255, .12);
+            border: 1px solid rgba(61, 111, 255, .2)
+        }
+
+        .lb-header {
+            font-family: 'Space Mono', monospace;
+            font-size: .65rem;
+            color: #3d5080;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 6px 14px;
+            margin-bottom: 6px
+        }
+
+        /* ANIMATIONS */
+        .stats-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .85);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(8px);
+            animation: fadeIn .3s ease
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0
+            }
+
+            to {
+                opacity: 1
+            }
+        }
+
+        .stats-box {
+            background: rgba(20, 22, 38, .98);
+            border: 1px solid rgba(61, 111, 255, .3);
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 560px;
+            width: 92%;
+            text-align: center;
+            box-shadow: 0 0 80px rgba(61, 111, 255, .2)
+        }
+
+        .confetti-dot {
+            position: fixed;
+            width: 8px;
+            height: 8px;
+            border-radius: 2px;
+            animation: confettiFall linear infinite
+        }
+
+        @keyframes confettiFall {
+            0% {
+                transform: translateY(-20px) rotate(0deg);
+                opacity: 1
+            }
+
+            100% {
+                transform: translateY(110vh) rotate(720deg);
+                opacity: 0
+            }
+        }
+
+        @keyframes popIn {
+            0% {
+                transform: scale(.5);
+                opacity: 0
+            }
+
+            70% {
+                transform: scale(1.1)
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1
+            }
+        }
+
+        .pop-in {
+            animation: popIn .5s cubic-bezier(.34, 1.56, .64, 1) both
+        }
+
+        .slide-up {
+            animation: slideUp .5s ease both
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        .final-stars {
+            font-size: 2.8rem;
+            letter-spacing: 4px;
+            margin: 14px 0
+        }
+
+        @keyframes bounce {
+
+            0%,
+            100% {
+                transform: translateY(0)
+            }
+
+            50% {
+                transform: translateY(-18px)
+            }
+        }
+
+        .bounce {
+            animation: bounce 1s infinite
+        }
+
+        @media(max-width:768px) {
+            .menu-card {
+                padding: 40px 24px
+            }
+
+            .lb-row {
+                grid-template-columns: 35px 1fr 60px 60px;
+                gap: 6px;
+                font-size: .75rem
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- GESTURE OVERLAY -->
+    <div id="gestureOverlay">
+        <canvas id="camCanvas" width="120" height="90"></canvas>
+        <div id="gestureIcon">✋</div>
+        <div id="gestureStatus">Kamera aus</div>
+        <button id="gestureToggle" onclick="toggleCamera()">📷 Einschalten</button>
+    </div>
+
+    <!-- GESTURE HINT POPUP -->
+    <div id="gestureHint">
+        <div class="gh-icon" id="ghIcon">☝️</div>
+        <div class="gh-title" id="ghTitle">Python!</div>
+        <div class="gh-sub" id="ghSub">1 Finger = 🐍 Python</div>
+        <div class="gh-bar">
+            <div class="gh-bar-fill" id="ghBar" style="width:0%"></div>
+        </div>
+    </div>
+
+    <div id="app"></div>
+
+    <!-- MediaPipe via CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+
+    <script>
+        const TIMER_MAX = 180;
+        const API = "http://localhost:5000/api/scores";
+
+        // ─── STATE ───
+        const state = {
+            screen: 'menu', playerName: '', timerMode: true, gameMode: null,
+            currentLevel: 0, score: 0, gameState: 'menu', showHint: false,
+            userAnswer: '', feedback: '', hintsUsed: 0, usedReveal: false,
+            showAnswer: false, timeLeft: TIMER_MAX, levelStartTime: 0,
+            levelTimes: [], showStats: false, finalStats: null, rankInfo: null,
+            levels: [], timerRef: null
+        };
+
+        // ─── GESTURE STATE ───
+        const gesture = {
+            active: false, fingers: 0, lastFingers: 0, holdStart: 0,
+            holdTarget: null, holdProgress: 0, holdDuration: 1200,
+            video: null, hands: null, camera: null, ctx: null,
+            lastAction: 0, cooldown: 2000, triggered: false
+        };
+
+        // ─── HELPERS ───
+        const shuffle = arr => [...arr].sort(() => Math.random() - .5);
+        const pickLevels = (pool, n) => { const s = shuffle(pool); return s.slice(0, n).map((l, i) => ({ ...l, id: i + 1 })); };
+
+        // ─── EXPLANATIONS ───
+        const EXPLANATIONS = {
+            'print': { title: '🐍 print()', text: 'Gibt Text in der Konsole aus. Beispiel: print("Hallo")' },
+            'len': { title: '📏 len()', text: 'Gibt die Anzahl der Elemente zurück. len("hello") = 5' },
+            'range': { title: '🔢 range()', text: 'Erstellt eine Zahlenfolge. range(5) = 0,1,2,3,4' },
+            'for': { title: '🔄 for', text: 'Schleife. for i in range(5): wiederholt 5 mal' },
+            'left': { title: '⬅️ left', text: 'Abstand von links. left: 50px; (braucht position:absolute)' },
+            'right': { title: '➡️ right', text: 'Abstand von rechts. right: 100px;' },
+            'top': { title: '⬆️ top', text: 'Abstand von oben. top: 30px;' },
+            'bottom': { title: '⬇️ bottom', text: 'Abstand von unten. bottom: 20px;' },
+            'width': { title: '📏 width', text: 'Breite. width: 100px; oder 50%' },
+            'height': { title: '📐 height', text: 'Höhe. height: 100px;' },
+            'background': { title: '🎨 background', text: 'Hintergrundfarbe. background: red;' },
+            'color': { title: '🖍️ color', text: 'Textfarbe. color: blue;' },
+            'border-radius': { title: '⭕ border-radius', text: 'Abgerundete Ecken. border-radius: 50% = Kreis' },
+            'transform': { title: '🔄 transform', text: 'Transformation. transform: rotate(45deg);' },
+            'opacity': { title: '👻 opacity', text: 'Transparenz 0-1. opacity: 0.5 = 50%' }
+        };
+
+        // ─── SELECTION TOOLTIP ───
+        function setupSelectionTooltip() {
+            document.addEventListener('mouseup', function () {
+                const sel = window.getSelection();
+                if (sel.toString().length > 0) {
+                    const words = sel.toString().toLowerCase().split(/[\s,;:()[\]{}\./\-\+=!@#$%^&*]+/).filter(w => w.length > 0);
+                    const exp = words.map(w => EXPLANATIONS[w]).filter(e => e);
+                    if (exp.length > 0) {
+                        const r = sel.getRangeAt(0).getBoundingClientRect();
+                        showTooltip(sel.toString(), exp[0], r.left + window.scrollX, r.top + window.scrollY - 70);
+                    }
+                } else { hideTooltip(); }
+            });
+            document.addEventListener('click', hideTooltip);
+        }
+
+        function showTooltip(text, info, x, y) {
+            let t = document.getElementById('tooltip');
+            if (!t) { t = document.createElement('div'); t.id = 'tooltip'; document.body.appendChild(t); }
+            t.className = 'selection-tooltip';
+            t.style.display = 'block';
+            t.style.left = Math.max(0, x - 190) + 'px';
+            t.style.top = Math.max(10, y) + 'px';
+            t.innerHTML = `<div class="selection-tooltip-title">${info.title}</div><div class="selection-tooltip-text">${info.text}</div><div class="selection-tooltip-code">💡 "${text}"</div>`;
+        }
+        function hideTooltip() { const t = document.getElementById('tooltip'); if (t) t.style.display = 'none'; }
+
+        // ─── MEDIAPIPE HANDS ───
+        function countFingers(landmarks) {
+            if (!landmarks || landmarks.length < 21) return 0;
+            const tips = [8, 12, 16, 20];
+            const pips = [6, 10, 14, 18];
+            let count = 0;
+            for (let i = 0; i < 4; i++) {
+                if (landmarks[tips[i]].y < landmarks[pips[i]].y) count++;
+            }
+            if (landmarks[4].x < landmarks[3].x) count++;
+            return count;
+        }
+
+        function drawHand(landmarks, canvasCtx, w, h) {
+            const connections = [
+                [0, 1], [1, 2], [2, 3], [3, 4],
+                [0, 5], [5, 6], [6, 7], [7, 8],
+                [5, 9], [9, 10], [10, 11], [11, 12],
+                [9, 13], [13, 14], [14, 15], [15, 16],
+                [13, 17], [17, 18], [18, 19], [19, 20], [0, 17]
+            ];
+            canvasCtx.strokeStyle = 'rgba(61,111,255,.8)';
+            canvasCtx.lineWidth = 1.5;
+            connections.forEach(([a, b]) => {
+                const p1 = landmarks[a], p2 = landmarks[b];
+                canvasCtx.beginPath();
+                canvasCtx.moveTo(p1.x * w, p1.y * h);
+                canvasCtx.lineTo(p2.x * w, p2.y * h);
+                canvasCtx.stroke();
+            });
+            landmarks.forEach(p => {
+                canvasCtx.beginPath();
+                canvasCtx.arc(p.x * w, p.y * h, 2.5, 0, Math.PI * 2);
+                canvasCtx.fillStyle = '#00d4aa';
+                canvasCtx.fill();
+            });
+        }
+
+        async function toggleCamera() {
+            if (gesture.active) {
+                stopCamera();
+                return;
+            }
+            const btn = document.getElementById('gestureToggle');
+            const statusEl = document.getElementById('gestureStatus');
+            btn.textContent = '⏳ Wird geladen...';
+            btn.disabled = true;
+            statusEl.textContent = 'Initialisierung...';
+
+            try {
+                gesture.video = document.createElement('video');
+                gesture.video.setAttribute('playsinline', '');
+                const canvas = document.getElementById('camCanvas');
+                gesture.ctx = canvas.getContext('2d');
+
+                gesture.hands = new Hands({
+                    locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}`
+                });
+                gesture.hands.setOptions({ maxNumHands: 1, modelComplexity: 0, minDetectionConfidence: 0.7, minTrackingConfidence: 0.5 });
+                gesture.hands.onResults(onHandResults);
+                await gesture.hands.initialize();
+
+                gesture.camera = new Camera(gesture.video, {
+                    onFrame: async () => { await gesture.hands.send({ image: gesture.video }); },
+                    width: 160, height: 120
+                });
+                await gesture.camera.start();
+
+                gesture.active = true;
+                btn.textContent = '🚫 Ausschalten';
+                btn.disabled = false;
+                statusEl.textContent = 'Gesten aktiv';
+                document.getElementById('gestureIcon').textContent = '✋';
+            } catch (e) {
+                btn.textContent = '📷 Einschalten';
+                btn.disabled = false;
+                statusEl.textContent = '❌ Kein Kamerazugriff';
+                console.error('Camera error:', e);
+            }
+        }
+
+        function stopCamera() {
+            if (gesture.camera) { gesture.camera.stop(); gesture.camera = null; }
+            if (gesture.hands) { gesture.hands.close(); gesture.hands = null; }
+            gesture.active = false;
+            gesture.video = null;
+            const btn = document.getElementById('gestureToggle');
+            btn.textContent = '📷 Einschalten';
+            document.getElementById('gestureStatus').textContent = 'Kamera aus';
+            document.getElementById('gestureIcon').textContent = '✋';
+            const canvas = document.getElementById('camCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function onHandResults(results) {
+            const canvas = document.getElementById('camCanvas');
+            const ctx = gesture.ctx;
+            const w = canvas.width, h = canvas.height;
+
+            ctx.save();
+            ctx.clearRect(0, 0, w, h);
+            ctx.scale(-1, 1);
+            ctx.translate(-w, 0);
+
+            if (results.image) {
+                ctx.drawImage(results.image, 0, 0, w, h);
+            }
+
+            let fingers = 0;
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                const lm = results.multiHandLandmarks[0];
+                drawHand(lm, ctx, w, h);
+                fingers = countFingers(lm);
+            }
+            ctx.restore();
+
+            const icons = ['✊', '☝️', '✌️', '🤟', '🖖', '🖐️'];
+            document.getElementById('gestureIcon').textContent = icons[Math.min(fingers, 5)] || '✋';
+
+            const statusEl = document.getElementById('gestureStatus');
+            if (fingers > 0) {
+                statusEl.textContent = `${fingers} ${fingers === 1 ? 'Finger' : 'Finger'}`;
+            } else {
+                statusEl.textContent = 'Finger zeigen';
+            }
+
+            processGesture(fingers);
+        }
+
+        function processGesture(fingers) {
+            const now = Date.now();
+            const TARGET_FINGERS_MAP = getGestureTargets();
+            if (!TARGET_FINGERS_MAP) return;
+
+            const target = TARGET_FINGERS_MAP[fingers];
+            if (!target) {
+                gesture.holdTarget = null;
+                gesture.holdProgress = 0;
+                hideGestureHint();
+                return;
+            }
+
+            if (now - gesture.lastAction < gesture.cooldown) return;
+
+            if (gesture.holdTarget !== fingers) {
+                gesture.holdTarget = fingers;
+                gesture.holdStart = now;
+                gesture.holdProgress = 0;
+            }
+
+            const elapsed = now - gesture.holdStart;
+            gesture.holdProgress = Math.min(elapsed / gesture.holdDuration, 1);
+
+            showGestureHintProgress(target, gesture.holdProgress);
+
+            if (gesture.holdProgress >= 1) {
+                gesture.lastAction = now;
+                gesture.holdTarget = null;
+                gesture.holdProgress = 0;
+                hideGestureHint();
+                executeGestureAction(target);
+            }
+        }
+
+        function getGestureTargets() {
+            const s = state.screen;
+
+            if (s === 'menu') {
+                return {
+                    1: { label: '🐍 Python', sub: '1 Finger = Python', icon: '☝️', action: 'selectPython' },
+                    2: { label: '🎨 CSS', sub: '2 Finger = CSS', icon: '✌️', action: 'selectCSS' }
+                };
+            }
+            // Auf dem Namens-Screen: Finger-Geste startet Spiel direkt mit gewähltem Modus
+            if (s === 'namemodescreen') {
+                if (state.playerName.trim().length >= 2) {
+                    return {
+                        1: { label: '⏱ Timer-Modus starten', sub: '1 Finger = sofort mit Timer spielen', icon: '☝️', action: 'startTimer' },
+                        2: { label: '🎮 Casual-Modus starten', sub: '2 Finger = sofort ohne Zeitdruck spielen', icon: '✌️', action: 'startCasual' }
+                    };
+                } else {
+                    return null;
+                }
+            }
+            // Auf dem Spiel-Menü-Screen (Python oder CSS): 5 Finger = Spiel sofort starten
+            if ((s === 'python' || s === 'css') && state.gameState === 'menu') {
+                return {
+                    5: { label: '🚀 Spiel starten!', sub: '5 Finger = sofort losspielen', icon: '🖐️', action: 'startFromGameMenu' }
+                };
+            }
+            return null;
+        }
+
+        function showGestureHintProgress(target, progress) {
+            const hint = document.getElementById('gestureHint');
+            document.getElementById('ghIcon').textContent = target.icon;
+            document.getElementById('ghTitle').textContent = target.label;
+            document.getElementById('ghSub').textContent = target.sub;
+            document.getElementById('ghBar').style.width = (progress * 100) + '%';
+            hint.classList.add('show');
+        }
+
+        function hideGestureHint() {
+            document.getElementById('gestureHint').classList.remove('show');
+        }
+
+        function executeGestureAction(target) {
+            switch (target.action) {
+                case 'selectPython': startGameFlow('python'); break;
+                case 'selectCSS': startGameFlow('css'); break;
+                case 'startTimer':
+                    state.timerMode = true;
+                    startGame();
+                    break;
+                case 'startCasual':
+                    state.timerMode = false;
+                    startGame();
+                    break;
+                case 'startFromGameMenu':
+                    // 5 Finger auf Python/CSS-Menü: Spiel sofort starten
+                    if (state.screen === 'python') startPythonGame();
+                    else if (state.screen === 'css') startCssGame();
+                    break;
+            }
+        }
+
+        // ─── TIMER RING ───
+        function createTimerRing(seconds, maxSeconds = TIMER_MAX) {
+            const r = 28, circ = 2 * Math.PI * r;
+            const pct = seconds / maxSeconds;
+            const color = seconds > 60 ? '#00d4aa' : seconds > 30 ? '#ffd060' : '#ff5555';
+            const dash = circ * pct;
+            const isDanger = seconds <= 10;
+            return `<div class="timer-ring-wrap">
+    <svg width="72" height="72" viewBox="0 0 72 72">
+      <circle cx="36" cy="36" r="${r}" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="5"/>
+      <circle cx="36" cy="36" r="${r}" fill="none" stroke="${color}" stroke-width="5"
+        stroke-dasharray="${dash} ${circ}" stroke-linecap="round" style="transition:stroke-dasharray .5s linear,stroke .5s"/>
+    </svg>
+    <div class="timer-number${isDanger ? ' timer-danger' : ''}" style="color:${color};font-size:${isDanger ? '1.3rem' : '1.05rem'}">
+      ${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}
+    </div>
+  </div>`;
+        }
+
+        // ─── LEVEL DATA ───
+        const cssPool = [
+            { id: 1, title: 'Ameise nach LINKS', difficulty: '🐜 Sehr einfach', story: 'Ameise ist rechts. Verschiebe sie nach LINKS!', demoType: 'left', correctCss: 'left:', hint: 'left: 50px;', explanation: 'CSS left: bewegt Element von der linken Kante!' },
+            { id: 2, title: 'Ameise nach RECHTS', difficulty: '🐜 Sehr einfach', story: 'Ameise ist links. Verschiebe sie nach RECHTS!', demoType: 'right', correctCss: 'right:', hint: 'right: 50px;', explanation: 'CSS right: bewegt Element von der rechten Kante!' },
+            { id: 3, title: 'Ameise nach OBEN', difficulty: '🐜 Sehr einfach', story: 'Ameise ist unten. Verschiebe sie nach OBEN!', demoType: 'top', correctCss: 'top:', hint: 'top: 50px;', explanation: 'CSS top: bewegt Element von oben!' },
+            { id: 4, title: 'Ameise nach UNTEN', difficulty: '🐜 Sehr einfach', story: 'Ameise ist oben. Verschiebe sie nach UNTEN!', demoType: 'bottom', correctCss: 'bottom:', hint: 'bottom: 50px;', explanation: 'CSS bottom: bewegt Element von unten!' },
+            { id: 5, title: 'Rot + Größe', difficulty: '🐜 Leicht', story: 'Ameise riesig machen UND rot färben!', demoType: 'size-color', correctCss: 'width:', hint: 'width: 100px; background: red;', explanation: 'width für Größe, background für Farbe!' },
+            { id: 6, title: 'Rund wie ein Kreis', difficulty: '🐜🐜 Leicht', story: 'Ameise ist eckig. Mach sie rund mit border-radius!', demoType: 'circle', correctCss: 'border-radius:', hint: 'border-radius: 50%;', explanation: 'border-radius: 50% macht ein Quadrat zu einem Kreis!' },
+            { id: 7, title: 'Schatten + Position', difficulty: '🐜🐜 Mittel', story: 'Ameise nach oben UND Schatten darunter!', demoType: 'shadow', correctCss: 'box-shadow:', hint: 'top: 50px; box-shadow: 0 5px 10px;', explanation: 'box-shadow: horizontal vertikal blur farbe;' },
+            { id: 8, title: 'Transparenz (opacity)', difficulty: '🐜🐜 Mittel', story: 'Ameise durchsichtig machen mit opacity!', demoType: 'opacity', correctCss: 'opacity:', hint: 'opacity: 0.5;', explanation: 'opacity: 0.5 macht Element zu 50% transparent!' },
+            { id: 9, title: 'Drehung mit transform', difficulty: '🐜🐜🐜 Schwer', story: 'Ameise um 45 Grad drehen mit transform!', demoType: 'rotate', correctCss: 'transform:', hint: 'transform: rotate(45deg);', explanation: 'transform: rotate(45deg) dreht das Element!' },
+            { id: 10, title: 'BOSS: ALLE EFFEKTE!', difficulty: '🐜🐜🐜🐜🐜 BOSS', story: 'Ameise: nach rechts + groß + rot + rund + Schatten!', demoType: 'boss', correctCss: 'right:', hint: 'right: 50px; width: 80px; background: red; border-radius: 50%; box-shadow: 0 5px 10px;', explanation: 'Du beherrschst CSS-Positionierung + Größe + Farbe + Effekte!' },
+        ];
+
+        const pyPool = [
+            { id: 1, type: 'Fix', difficulty: '🐜 Sehr einfach', title: 'Hallo Ameise!', story: 'Die Ameise will "Hallo!" sagen, aber print hat keine Klammern!', code: 'print "Hallo Ameisenhügel!"', error: 'SyntaxError: missing parentheses', correctAnswer: '()', hint: 'print() braucht runde Klammern in Python 3!', explanation: 'print("Hallo Ameisenhügel!") — Klammern sind Pflicht!' },
+            { id: 2, type: 'Fix', difficulty: '🐜 Leicht', title: 'Liste schließen', story: 'Die Liste hat keine schließende Klammer!', code: 'ameisen = ["Alice", "Bob", "Charlie"\nprint(ameisen[0])', error: 'SyntaxError: unexpected EOF', correctAnswer: ']', hint: 'Eckige Klammern [ ] müssen geschlossen sein!', explanation: '["Alice", "Bob", "Charlie"] — schließende Klammer fehlt!' },
+            { id: 3, type: 'Fix', difficulty: '🐜🐜 Mittel', title: 'While-Doppelpunkt', story: 'While-Schleife braucht einen Doppelpunkt!', code: 'i = 0\nwhile i < 5\n    print(i)', error: 'SyntaxError: expected ":"', correctAnswer: ':', hint: 'while braucht einen Doppelpunkt (:) nach der Bedingung!', explanation: 'while i < 5: — Doppelpunkt ist wichtig!' },
+            { id: 4, type: 'Fix', difficulty: '🐜🐜🐜 Schwer', title: 'NameError beheben', story: 'Variable wird benutzt bevor sie definiert wurde!', code: 'print(punkte)\npunkte = 100', error: 'NameError: name "punkte" is not defined', correctAnswer: 'punkte', hint: 'Definiere "punkte = 100" VOR dem print!', explanation: 'In Python muss eine Variable definiert sein, bevor man sie benutzt!' },
+            { id: 5, type: 'Fix', difficulty: '🐜 Leicht', title: 'if ohne Doppelpunkt', story: 'if-Bedingung braucht einen Doppelpunkt!', code: 'alter = 8\nif alter > 5\n    print("Groß!")', error: 'SyntaxError: expected ":"', correctAnswer: ':', hint: 'if Bedingung: — nicht vergessen!', explanation: 'if, elif, else, for, while — alle brauchen : am Ende!' },
+            { id: 6, type: 'Fix', difficulty: '🐜🐜 Mittel', title: 'Falsche Einrückung', story: 'Der print ist falsch eingerückt!', code: 'def sag_hallo():\nprint("Hallo!")', error: 'IndentationError: expected an indented block', correctAnswer: '    ', hint: '4 Leerzeichen vor print("Hallo!")!', explanation: 'Funktionskörper muss mit 4 Leerzeichen eingerückt sein!' },
+            { id: 7, type: 'Fix', difficulty: '🐜 Sehr einfach', title: 'Fehlende Klammer', story: 'Die Funktion wird ohne Klammern aufgerufen!', code: 'def greet():\n    print("Hi!")\ngreet', error: 'Funktion wird nicht ausgeführt', correctAnswer: '()', hint: 'Schreib greet() mit Klammern!', explanation: 'greet() — Klammern bedeuten: Funktion ausführen!' },
+            { id: 8, type: 'Finde', difficulty: '🐜 Sehr einfach', title: 'Ameisen zählen', story: '5 + 3 = 8 Ameisen. Aber eine Variable ist sinnlos!', code: 'ameisen = 5\nneue = 3\ntotal = ameisen + neue\nprint(total)\nfehler = total - 100', correctAnswer: 'fehler', hint: 'Welche Variable wird nicht genutzt?', explanation: '"fehler" wird erstellt aber nie verwendet — überflüssig!' },
+            { id: 9, type: 'Finde', difficulty: '🐜 Leicht', title: 'if/else-Bedingung', story: 'Alter prüfen. Eine Zeile ergibt keinen Sinn!', code: 'alter = 5\nif alter > 3:\n    print("Erwachsen!")\n    status = "OK"\nelse:\n    print("Jung!")', correctAnswer: 'status', hint: 'status wird erstellt aber nie benutzt!', explanation: '"status" ist überflüssig — wird nicht verwendet!' },
+            { id: 10, type: 'Ordne', difficulty: '🐜 Leicht', title: 'Schleife von 1 bis 10', story: '10 Ameisen arbeiten! Zeilen sind durcheinander!', codeLines: ['    print(f"Ameise {i+1}")', 'for i in range(10):'], correctOrder: [1, 0], hint: 'for zuerst, dann der Inhalt mit Einrückung!', explanation: 'Schleifen: for-Zeile zuerst, dann Körper mit Einrückung!' },
+        ];
+
+        // ─── RENDER ───
+        function render() {
+            const app = document.getElementById('app');
+            if (state.screen === 'menu') renderMenu(app);
+            else if (state.screen === 'namemodescreen') renderNameModeScreen(app);
+            else if (state.screen === 'css') renderCssGame(app);
+            else if (state.screen === 'python') renderPythonGame(app);
+            else if (state.screen === 'leaderboard') renderLeaderboard(app);
+        }
+
+        // ─── MENU ───
+        function renderMenu(app) {
+            app.innerHTML = `
+    <div class="menu-root">
+      <div class="menu-grid"></div>
+      <div class="menu-glow menu-glow-1"></div>
+      <div class="menu-glow menu-glow-2"></div>
+      <div class="menu-card slide-up">
+        <div class="menu-title">🐜 Bug Hunter</div>
+        <div class="menu-sub">Academy — wähle deinen Kurs</div>
+        <div style="font-family:'Space Mono',monospace;font-size:.65rem;color:#3d5080;margin-top:8px;padding:8px 12px;background:rgba(61,111,255,.05);border-radius:8px;border:1px solid rgba(61,111,255,.1);">
+          ✋ Gesten: ☝️ 1 Finger = Python &nbsp;|&nbsp; ✌️ 2 Finger = CSS
+        </div>
+        <div class="menu-divider"></div>
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div class="game-card game-card-py" onclick="startGameFlow('python')" style="position:relative;">
+            <div class="gesture-label gesture-label-py">☝️ 1 Finger</div>
+            <div class="game-badge badge-py">10 Levels</div>
+            <div class="game-card-title">🐍 Python Edition</div>
+            <div class="game-card-desc">Behebe Syntax-Fehler, finde überflüssige Variablen und ordne Code-Zeilen. Echter Debugging-Spaß!</div>
+            <div class="game-card-footer">
+              <span class="levels-pill">Beheben · Finden · Ordnen</span>
+              <button class="play-btn play-btn-py">Spielen →</button>
+            </div>
+          </div>
+          <div class="game-card game-card-css" onclick="startGameFlow('css')" style="position:relative;">
+            <div class="gesture-label gesture-label-css">✌️ 2 Finger</div>
+            <div class="game-badge badge-css">10 Levels</div>
+            <div class="game-card-title">🎨 CSS Edition</div>
+            <div class="game-card-desc">Bewege eine Ameise mit CSS-Eigenschaften — von left/right/top bis hin zu transform und box-shadow.</div>
+            <div class="game-card-footer">
+              <span class="levels-pill">Interaktive Demo · Visuell</span>
+              <button class="play-btn play-btn-css">Spielen →</button>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:20px;display:flex;align-items:center;justify-content:space-between;">
+          <div style="font-size:.75rem;font-family:'Space Mono',monospace;color:#3a3f55;">⏱ Timer · 🌾 Punkte · 🏆 Rangliste</div>
+          <button onclick="goLeaderboard()" style="background:transparent;border:1px solid rgba(255,255,255,.1);color:#6b7280;font-family:'Space Mono',monospace;font-size:.72rem;padding:7px 14px;border-radius:8px;cursor:pointer;">🏆 Rangliste</button>
+        </div>
+      </div>
+    </div>`;
+        }
+
+        // ─── NAME/MODE SCREEN ───
+        function renderNameModeScreen(app) {
+            const game = state.gameMode;
+            const canStart = state.playerName.trim().length >= 2;
+            if (!game) { renderMenu(app); return; }
+            app.innerHTML = `
+    <div class="menu-root">
+      <div class="menu-grid"></div>
+      <div class="menu-glow menu-glow-1"></div>
+      <div class="menu-glow menu-glow-2"></div>
+      <div class="menu-card slide-up" style="max-width:640px;">
+        <button class="back-btn" style="margin-bottom:24px;" onclick="backToMenu()">← Zurück</button>
+        <div style="font-size:3rem;margin-bottom:8px;">${game === 'python' ? '🐍' : '🎨'}</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:2rem;background:${game === 'python' ? 'linear-gradient(135deg,#3d6fff,#00d4aa)' : 'linear-gradient(135deg,#ff6b2b,#ff3d7f)'};-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px;">
+          ${game === 'python' ? 'Python Edition' : 'CSS Edition'}
+        </div>
+
+        <div style="background:rgba(61,111,255,.06);border:1px solid rgba(61,111,255,.15);border-radius:10px;padding:10px 14px;margin-bottom:18px;font-family:'Space Mono',monospace;font-size:.68rem;color:#7fa8ff;line-height:1.7;">
+          ✋ Gesten (nach Namenseingabe):<br>
+          ☝️ <strong>1 Finger</strong> = sofort mit <strong style="color:#3d6fff;">⏱ Timer-Modus</strong> starten<br>
+          ✌️ <strong>2 Finger</strong> = sofort mit <strong style="color:#ffd060;">🎮 Casual-Modus</strong> starten
+        </div>
+
+        <div style="margin-bottom:20px;">
+          <div style="font-family:'Space Mono',monospace;font-size:.72rem;color:#6b7280;margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;">Dein Name</div>
+          <input type="text" class="nm-input" id="playerNameInput" value="${state.playerName}" placeholder="Name eingeben..." maxlength="20"
+            oninput="updatePlayerName(this.value)"
+            onkeydown="if(event.key==='Enter'&&${canStart}) startGame()">
+        </div>
+        <div style="font-family:'Space Mono',monospace;font-size:.72rem;color:#6b7280;margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;">Modus wählen</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:28px;">
+          <div class="mode-card ${state.timerMode ? 'selected-timer' : ''}" onclick="switchMode(true)">
+            <div style="font-size:1.8rem;margin-bottom:6px;">⏱</div>
+            <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:#fff;margin-bottom:4px;">Timer</div>
+            <div style="font-size:.78rem;color:#6b7280;line-height:1.4;">3 Min pro Level. Punkte hängen von der Zeit ab.</div>
+            <div class="mode-gesture-label">☝️ 1 Finger</div>
+            ${state.timerMode ? '<div style="position:absolute;top:10px;right:10px;width:8px;height:8px;border-radius:50%;background:#3d6fff;box-shadow:0 0 8px #3d6fff;"></div>' : ''}
+          </div>
+          <div class="mode-card ${!state.timerMode ? 'selected-casual' : ''}" onclick="switchMode(false)">
+            <div style="font-size:1.8rem;margin-bottom:6px;">🎮</div>
+            <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:#fff;margin-bottom:4px;">Casual</div>
+            <div style="font-size:.78rem;color:#6b7280;line-height:1.4;">Kein Zeitdruck. Lernen ohne Stress.</div>
+            <div class="mode-gesture-label">✌️ 2 Finger</div>
+            ${!state.timerMode ? '<div style="position:absolute;top:10px;right:10px;width:8px;height:8px;border-radius:50%;background:#ffd060;box-shadow:0 0 8px #ffd060;"></div>' : ''}
+          </div>
+        </div>
+        ${!canStart ? '<div style="font-family:\'Space Mono\',monospace;font-size:.72rem;color:#ff8080;margin-bottom:12px;text-align:center;">⚠ Mindestens 2 Zeichen für den Namen</div>' : ''}
+        <button onclick="startGame()" style="width:100%;padding:16px;border-radius:14px;border:none;cursor:${canStart ? 'pointer' : 'not-allowed'};font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem;transition:all .2s;
+          background:${canStart ? (game === 'python' ? 'linear-gradient(135deg,#3d6fff,#00d4aa)' : 'linear-gradient(135deg,#ff6b2b,#ff3d7f)') : 'rgba(255,255,255,.05)'};
+          color:${canStart ? '#fff' : '#3d5080'};opacity:${canStart ? 1 : .5};
+          box-shadow:${canStart ? '0 4px 24px rgba(61,111,255,.3)' : 'none'}">
+          ${canStart ? '🚀 SPIELEN ALS ' + state.playerName.trim().toUpperCase() : 'Name eingeben...'}
+        </button>
+      </div>
+    </div>`;
+        }
+
+        // ─── CSS GAME ───
+        function renderCssGame(app) {
+            if (state.gameState === 'menu') renderCssMenu(app);
+            else if (state.gameState === 'playing') renderCssPlaying(app);
+            else if (state.gameState === 'levelComplete') renderCssLevelComplete(app);
+            else if (state.gameState === 'completed') renderCssCompleted(app);
+        }
+
+        function renderCssMenu(app) {
+            app.innerHTML = `
+    <div class="css-menu-root">
+      <div class="css-blob css-blob-1"></div>
+      <div class="css-blob css-blob-2"></div>
+      <div class="css-menu-card slide-up">
+        <button class="back-btn" style="margin-bottom:22px;border:1px solid #ffd9b3;color:#9a6a50;background:transparent;" onclick="backToMenu()">← Hauptmenü</button>
+        <div style="font-size:3rem;margin-bottom:8px;">🎨</div>
+        <div class="css-menu-title">CSS Edition</div>
+        <div style="font-family:'Space Mono',monospace;font-size:.75rem;color:#c89070;letter-spacing:2px;text-transform:uppercase;margin-top:6px;margin-bottom:24px;">10 Levels · ${state.timerMode ? '⏱ Timer-Modus' : '🎮 Casual'}</div>
+        ${!state.timerMode ? '<div style="background:rgba(255,208,96,.08);border:1px solid rgba(255,208,96,.2);border-radius:10px;padding:12px 16px;margin-bottom:20px;font-family:\'Space Mono\',monospace;font-size:.75rem;color:#ffd060;">⚠ Casual-Modus: kein Ranglisten-Eintrag</div>' : ''}
+        <div style="background:#fff8f4;border:2px solid #ffd9b3;border-radius:14px;padding:20px;margin-bottom:24px;">
+          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:#7a3010;margin-bottom:10px;">📋 Was erwartet dich?</div>
+          <div style="display:flex;flex-direction:column;gap:7px;color:#6a4030;font-size:.88rem;">
+            <div>✅ Level 1–4: Bewegung mit left, right, top, bottom</div>
+            <div>✅ Level 5–7: Größe, Farbe &amp; Effekte</div>
+            <div>✅ Level 8–10: Transform, Opacity &amp; Boss-Level</div>
+            <div style="margin-top:6px;color:#ff6b2b;font-weight:600;">${state.timerMode ? '⏱ Punkte = Zeit × Basispunkte' : '🌾 100 ohne Tipp · 50 mit Tipp · 0 mit Antwort'}</div>
+          </div>
+        </div>
+        <div style="background:rgba(255,107,43,.05);border:1px solid rgba(255,107,43,.15);border-radius:10px;padding:9px 14px;margin-bottom:16px;font-family:'Space Mono',monospace;font-size:.67rem;color:#ff9860;text-align:center;">
+          🖐️ <strong>5 Finger</strong> halten = sofort spielen
+        </div>
+        <button class="css-btn-primary" style="width:100%;font-size:1.05rem;" onclick="startCssGame()">🎨 CSS SPIELEN</button>
+      </div>
+    </div>`;
+        }
+
+        function renderCssPlaying(app) {
+            const level = state.levels[state.currentLevel];
+            const progress = ((state.currentLevel + 1) / 10) * 100;
+            app.innerHTML = `
+    <div class="css-root">
+      <div class="css-blob css-blob-1"></div>
+      <div class="css-blob css-blob-2"></div>
+      <div class="css-header">
+        <div style="display:flex;align-items:center;gap:14px;">
+          <button class="back-btn" style="border:1px solid #ffd9b3;color:#9a6a50;background:transparent;" onclick="backToMenu()">← Menü</button>
+          <div><div class="css-header-title">🎨 CSS</div><div style="font-family:'Space Mono',monospace;font-size:.65rem;color:#c89070;">Lv ${state.currentLevel + 1}/10 · ${state.playerName}</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          ${state.timerMode ? createTimerRing(state.timeLeft) : ''}
+          <div class="css-score-pill">🌾 ${state.score}</div>
+        </div>
+      </div>
+      <div class="css-progress-bar"><div class="css-progress-fill" style="width:${progress}%;"></div></div>
+      <div class="css-main">
+        <div class="css-card slide-up">
+          <span style="font-family:'Space Mono',monospace;font-size:.68rem;color:#c89070;background:#fff4ee;border:1px solid #ffd9b3;border-radius:20px;padding:3px 10px;">${level.difficulty}</span>
+          <div class="css-level-title" style="margin-top:8px;">${level.title}</div>
+          <div class="css-story">${level.story}</div>
+          <div class="css-demo-box"><div class="css-ant" style="${getAntStyles(level, state.userAnswer)}">🐜</div></div>
+          <div class="css-code-block">.ant {\n  position: absolute;\n  ${state.userAnswer || '/* hier schreiben... */'}\n}</div>
+          <input type="text" class="css-input" id="cssInput" value="${state.userAnswer}" placeholder="z.B. left: 50px;"
+            oninput="updateAnswer(this.value)" onkeydown="if(event.key==='Enter') checkCssAnswer()">
+          ${renderCssHintSection(level)}
+          ${renderFeedback()}
+          <div style="display:flex;gap:12px;">
+            <button class="css-btn-primary" onclick="checkCssAnswer()">✅ Prüfen</button>
+            <button class="css-btn-secondary" onclick="resetGame()">🔄 Neu</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+        }
+
+        function getAntStyles(level, userAnswer) {
+            const base = 'left:10px;top:10px;right:auto;bottom:auto;width:44px;height:44px;background:#8B4513;border-radius:50%;box-shadow:0 4px 12px rgba(139,69,19,.3);opacity:1;transform:rotate(0deg);';
+            const ua = userAnswer;
+            if (level.demoType === 'left') return base.replace('left:10px', ua.includes('left') ? 'left:50px' : 'left:200px');
+            if (level.demoType === 'right') return base.replace('left:10px;top:10px;right:auto;', ua.includes('right') ? 'right:50px;left:auto;top:10px;' : 'right:10px;left:auto;top:10px;');
+            if (level.demoType === 'top') return base.replace('top:10px', ua.includes('top') ? 'top:50px' : 'top:185px');
+            if (level.demoType === 'bottom') return base.replace('bottom:auto;top:10px', ua.includes('bottom') ? 'bottom:50px;top:auto' : 'bottom:10px;top:auto');
+            if (level.demoType === 'size-color') {
+                const w = ua.includes('width') ? '80px' : '44px';
+                const bg = ua.includes('red') ? '#ff4422' : '#8B4513';
+                return base.replace('width:44px;height:44px;background:#8B4513', `width:${w};height:${w};background:${bg}`);
+            }
+            if (level.demoType === 'circle') return base.replace('border-radius:50%', ua.includes('border-radius') ? 'border-radius:50%' : 'border-radius:6px');
+            if (level.demoType === 'opacity') return base.replace('opacity:1', ua.includes('opacity') ? 'opacity:0.35' : 'opacity:1');
+            if (level.demoType === 'rotate') return base.replace('transform:rotate(0deg)', ua.includes('transform') ? 'transform:rotate(45deg)' : 'transform:rotate(0deg)');
+            return base;
+        }
+
+        function renderCssHintSection(level) {
+            if (!state.showHint) return `<button class="css-hint-btn" onclick="toggleHint()">💡 Tipp (−50%)</button>`;
+            return `<div style="margin-bottom:14px;">
+    <div class="css-hint-box" style="margin-bottom:9px;">
+      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:.75rem;color:#c05010;margin-bottom:5px;letter-spacing:1px;text-transform:uppercase;">💡 Tipp</div>
+      <div style="font-family:'Space Mono',monospace;margin-bottom:9px;">${level.hint}</div>
+      <div style="border-top:1px solid #ffcfaa;padding-top:9px;color:#7a4020;font-size:.8rem;"><span style="color:#e05000;font-weight:600;">📚 Erklärung:</span> ${level.explanation}</div>
+    </div>
+    ${!state.showAnswer && !state.usedReveal ? `<button onclick="toggleAnswer()" style="width:100%;background:rgba(255,107,43,.06);border:2px solid rgba(255,107,43,.25);color:#cc4400;font-family:'Syne',sans-serif;font-weight:700;font-size:.83rem;padding:10px;border-radius:10px;cursor:pointer;">👁 Richtige Antwort anzeigen</button>` : ''}
+    ${state.showAnswer && !state.usedReveal ? `<div>
+      <div style="background:rgba(255,107,43,.08);border:2px solid rgba(255,107,43,.3);border-radius:10px;padding:14px 16px;margin-bottom:10px;">
+        <div style="font-family:'Space Mono',monospace;font-size:.68rem;color:#ff9860;margin-bottom:6px;text-transform:uppercase;">✅ Richtige Antwort:</div>
+        <div style="font-family:'Space Mono',monospace;font-size:1rem;color:#ff6b2b;font-weight:700;">${level.hint}</div>
+      </div>
+      <button onclick="revealAnswer()" style="width:100%;background:linear-gradient(135deg,rgba(255,107,43,.15),rgba(255,61,127,.1));border:2px solid rgba(255,107,43,.4);color:#ff6b2b;font-family:'Syne',sans-serif;font-weight:700;font-size:.9rem;padding:12px;border-radius:10px;cursor:pointer;">✅ Verstanden — WEITER</button>
+    </div>`: ''}
+  </div>`;
+        }
+
+        function renderCssLevelComplete(app) {
+            const level = state.levels[state.currentLevel];
+            const confetti = state.usedReveal ? [] : generateConfetti();
+            app.innerHTML = `
+    <div class="css-complete-root">
+      <div class="css-blob css-blob-1"></div>
+      <div class="css-blob css-blob-2"></div>
+      ${confetti.map(c => `<div class="confetti-dot" style="background:${c.color};left:${c.left}%;animation-duration:${c.dur}s;animation-delay:${c.delay}s;"></div>`).join('')}
+      <div class="css-menu-card pop-in" style="text-align:center;position:relative;z-index:2;">
+        <div style="font-size:4.5rem;" class="bounce">${state.usedReveal ? '📖' : '🎉'}</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:2.5rem;background:${state.usedReveal ? 'linear-gradient(135deg,#ff6b2b,#cc2200)' : 'linear-gradient(135deg,#ff6b2b,#ff3d7f)'};-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:8px 0;">${state.usedReveal ? 'GELÖST!' : 'RICHTIG!'}</div>
+        ${state.usedReveal ? '<div style="background:rgba(255,107,43,.07);border:2px solid rgba(255,107,43,.2);border-radius:10px;padding:10px 16px;margin:0 0 14px;font-size:.82rem;color:#cc4400;font-family:\'Space Mono\',monospace;">Antwort angezeigt — 0 Punkte</div>' : ''}
+        <div style="background:#fff8f4;border:2px solid #ffd9b3;border-radius:12px;padding:18px;margin:14px 0;text-align:left;">
+          <div style="font-weight:700;color:#7a3010;margin-bottom:5px;">📚 Gelernt:</div>
+          <div style="color:#6a4030;font-size:.9rem;">${level.explanation}</div>
+        </div>
+        <button class="css-btn-primary" style="width:100%;font-size:1.05rem;" onclick="nextLevel()">${state.currentLevel < 9 ? '🎨 WEITER →' : '🏆 FINALE!'}</button>
+      </div>
+    </div>`;
+        }
+
+        function renderCssCompleted(app) {
+            const stars = state.finalStats.score >= 900 ? 5 : state.finalStats.score >= 800 ? 4 : state.finalStats.score >= 700 ? 3 : state.finalStats.score >= 600 ? 2 : 1;
+            app.innerHTML = `
+    <div class="css-complete-root" style="background:linear-gradient(135deg,#fff0e8,#ffe0f0);">
+      <div class="css-menu-card pop-in" style="text-align:center;position:relative;z-index:2;">
+        <div style="font-size:4.5rem;margin-bottom:6px;">👑</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:2.2rem;background:linear-gradient(135deg,#ff6b2b,#ff3d7f);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">CSS-MEISTER!</div>
+        <div class="final-stars">${'⭐'.repeat(stars)}</div>
+        <div style="font-family:'Space Mono',monospace;font-size:2.2rem;color:#ff6b2b;margin:14px 0;">🌾 ${state.finalStats.score}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;">
+          <div style="background:#fff8f4;border:1px solid #ffd9b3;border-radius:10px;padding:12px;">
+            <div style="font-size:.68rem;color:#c89070;font-family:'Space Mono',monospace;">PROZENT</div>
+            <div style="font-size:1.3rem;font-weight:700;color:#ff6b2b;">${state.finalStats.percent}%</div>
+          </div>
+          <div style="background:#fff8f4;border:1px solid #ffd9b3;border-radius:10px;padding:12px;">
+            <div style="font-size:.68rem;color:#c89070;font-family:'Space Mono',monospace;">Ø ZEIT</div>
+            <div style="font-size:1.3rem;font-weight:700;color:#ff6b2b;">${state.finalStats.avgTime}s</div>
+          </div>
+        </div>
+        ${state.rankInfo ? `<div style="padding:12px;background:rgba(255,107,43,.08);border:1px solid rgba(255,107,43,.2);border-radius:10px;margin-bottom:16px;font-family:'Space Mono',monospace;font-size:.85rem;color:#cc4400;">🏆 Platz <strong>#${state.rankInfo.rank}</strong> von ${state.rankInfo.total}</div>` : ''}
+        <div style="display:flex;gap:12px;">
+          <button class="css-btn-primary" onclick="resetGame()">🔄 Nochmal</button>
+          <button class="css-btn-secondary" onclick="backToMenu()">🏠 Menü</button>
+        </div>
+      </div>
+    </div>`;
+        }
+
+        // ─── PYTHON GAME ───
+        function renderPythonGame(app) {
+            if (state.gameState === 'menu') renderPythonMenu(app);
+            else if (state.gameState === 'playing') renderPythonPlaying(app);
+            else if (state.gameState === 'levelComplete') renderPythonLevelComplete(app);
+            else if (state.gameState === 'completed') renderPythonCompleted(app);
+        }
+
+        function renderPythonMenu(app) {
+            app.innerHTML = `
+    <div class="py-menu-root">
+      <div class="menu-glow menu-glow-1" style="opacity:.2;"></div>
+      <div class="py-menu-card slide-up">
+        <button class="back-btn" style="margin-bottom:22px;" onclick="backToMenu()">← Hauptmenü</button>
+        <div style="font-size:3rem;margin-bottom:8px;">🐍</div>
+        <div class="py-menu-title">Python Edition</div>
+        <div style="font-family:'Space Mono',monospace;font-size:.75rem;color:#3d6fff;letter-spacing:2px;text-transform:uppercase;margin-top:6px;margin-bottom:4px;">10 Levels · ${state.timerMode ? '⏱ Timer-Modus' : '🎮 Casual'}</div>
+        ${!state.timerMode ? '<div style="background:rgba(255,208,96,.08);border:1px solid rgba(255,208,96,.2);border-radius:10px;padding:11px 14px;margin-bottom:16px;font-family:\'Space Mono\',monospace;font-size:.72rem;color:#ffd060;">⚠ Casual-Modus: kein Ranglisten-Eintrag</div>' : ''}
+        <div class="py-divider"></div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:24px;">
+          <div style="color:#9aa3b5;font-size:.88rem;">✅ Level 1–3: Grundlagen (print, Variablen, Schleifen)</div>
+          <div style="color:#9aa3b5;font-size:.88rem;">✅ Level 4–7: Mittelstufe (Listen, if/else, Dictionaries)</div>
+          <div style="color:#9aa3b5;font-size:.88rem;">✅ Level 8–10: Fortgeschritten (Funktionen, alles zusammen)</div>
+          <div style="color:#3d6fff;font-size:.88rem;margin-top:4px;">${state.timerMode ? '⏱ Punkte = Zeit × Basispunkte' : '🌾 100 · Tipp −50% · Antwort = 0'}</div>
+        </div>
+        <div style="background:rgba(61,111,255,.05);border:1px solid rgba(61,111,255,.12);border-radius:10px;padding:9px 14px;margin-bottom:16px;font-family:'Space Mono',monospace;font-size:.67rem;color:#3d6fff;text-align:center;">
+          🖐️ <strong>5 Finger</strong> halten = sofort spielen
+        </div>
+        <button class="py-btn-primary" style="width:100%;font-size:1.05rem;" onclick="startPythonGame()">🐜 PYTHON SPIELEN</button>
+      </div>
+    </div>`;
+        }
+
+        function renderPythonPlaying(app) {
+            const level = state.levels[state.currentLevel];
+            const progress = ((state.currentLevel + 1) / 10) * 100;
+            const typeBadgeClass = level.type === 'Fix' ? 'badge-fix' : level.type === 'Finde' ? 'badge-find' : 'badge-sort';
+            const typeLabel = level.type === 'Fix' ? 'Beheben' : level.type === 'Finde' ? 'Finden' : 'Ordnen';
+            app.innerHTML = `
+    <div class="py-root">
+      <div class="py-scanlines"></div>
+      <div class="py-header">
+        <div style="display:flex;align-items:center;gap:14px;">
+          <button class="back-btn" onclick="backToMenu()">← Menü</button>
+          <div><div class="py-header-title">🐍 Python</div><div style="font-family:'Space Mono',monospace;font-size:.65rem;color:#3d5080;">Lv ${state.currentLevel + 1}/10 · ${state.playerName}</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          ${state.timerMode ? createTimerRing(state.timeLeft) : ''}
+          <div class="py-score-pill">🌾 ${state.score}</div>
+        </div>
+      </div>
+      <div class="py-progress-bar"><div class="py-progress-fill" style="width:${progress}%;"></div></div>
+      <div class="py-main">
+        <div class="py-card slide-up">
+          <div><span class="py-type-badge ${typeBadgeClass}">${typeLabel}</span></div>
+          <div style="font-family:'Space Mono',monospace;font-size:.68rem;color:#6b7280;margin-bottom:5px;">${level.difficulty}</div>
+          <div class="py-level-title">${level.title}</div>
+          <div class="py-story">${level.story}</div>
+          ${level.code ? `<div class="py-code-block">${level.code}${level.error ? `\n💥 FEHLER:\n${level.error}` : ''}</div>` : ''}
+          ${level.codeLines ? `<div style="background:rgba(61,111,255,.05);border:1px solid rgba(61,111,255,.15);border-radius:12px;padding:14px 18px;margin-bottom:14px;">
+            <div style="font-family:'Space Mono',monospace;font-size:.68rem;color:#3d6fff;margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;">📋 Code-Zeilen:</div>
+            ${level.codeLines.map((line, idx) => `<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:9px 13px;margin-bottom:7px;font-family:'Space Mono',monospace;font-size:.78rem;color:#a8b4d8;"><span style="color:#3d6fff;font-weight:700;margin-right:10px;">${idx}</span>${line || '(leer)'}</div>`).join('')}
+          </div>`: ''}
+          ${renderPythonHintSection(level)}
+          <div style="margin-bottom:7px;font-family:'Space Mono',monospace;font-size:.72rem;color:#6b7280;">
+            ${level.type === 'Ordne' ? '📝 Reihenfolge (z.B. 1,0 oder 2,3,0,1):' : '📝 Deine Antwort:'}
+          </div>
+          <textarea class="py-textarea" id="pyInput" placeholder="Antwort hier..." rows="3" oninput="updateAnswer(this.value)">${state.userAnswer}</textarea>
+          ${renderFeedback()}
+          <div style="display:flex;gap:12px;">
+            <button class="py-btn-primary" onclick="checkPythonAnswer()">✅ Prüfen</button>
+            <button class="py-btn-secondary" onclick="resetGame()">🔄 Neu</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+        }
+
+        function renderPythonHintSection(level) {
+            if (!state.showHint) return `<button class="py-hint-btn" onclick="toggleHint()">💡 Tipp (−50%)</button>`;
+            return `<div style="margin-bottom:14px;">
+    <div class="py-hint-box" style="margin-bottom:9px;">
+      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:.75rem;color:#7fa8ff;margin-bottom:5px;letter-spacing:1px;text-transform:uppercase;">💡 Tipp</div>
+      <div style="margin-bottom:9px;">${level.hint}</div>
+      <div style="border-top:1px solid rgba(61,111,255,.15);padding-top:9px;color:#9aa3b5;font-size:.8rem;"><span style="color:#00d4aa;font-weight:600;">📚 Erklärung:</span> ${level.explanation}</div>
+    </div>
+    ${!state.showAnswer && !state.usedReveal ? `<button onclick="toggleAnswer()" style="width:100%;background:rgba(255,80,80,.06);border:1px solid rgba(255,80,80,.2);color:#ff8080;font-family:'Syne',sans-serif;font-weight:700;font-size:.83rem;padding:10px;border-radius:10px;cursor:pointer;">👁 Richtige Antwort anzeigen</button>` : ''}
+    ${state.showAnswer && !state.usedReveal ? `<div>
+      <div style="background:rgba(0,212,170,.07);border:1px solid rgba(0,212,170,.25);border-radius:10px;padding:14px 16px;margin-bottom:10px;">
+        <div style="font-family:'Space Mono',monospace;font-size:.68rem;color:#00d4aa;margin-bottom:6px;text-transform:uppercase;">✅ Richtige Antwort:</div>
+        <div style="font-family:'Space Mono',monospace;font-size:1rem;color:#fff;font-weight:700;">${getCorrectPyAnswerText(level)}</div>
+      </div>
+      <button onclick="revealAnswer()" style="width:100%;background:linear-gradient(135deg,rgba(0,212,170,.15),rgba(61,111,255,.1));border:1px solid rgba(0,212,170,.35);color:#00d4aa;font-family:'Syne',sans-serif;font-weight:700;font-size:.9rem;padding:12px;border-radius:10px;cursor:pointer;">✅ Verstanden — WEITER</button>
+    </div>`: ''}
+  </div>`;
+        }
+
+        function renderPythonLevelComplete(app) {
+            const level = state.levels[state.currentLevel];
+            app.innerHTML = `
+    <div class="py-menu-root">
+      <div class="menu-glow menu-glow-1" style="opacity:.15;"></div>
+      <div class="menu-glow menu-glow-2" style="background:#00d4aa;opacity:.1;"></div>
+      <div class="py-menu-card pop-in" style="text-align:center;position:relative;z-index:2;">
+        <div style="font-size:4.5rem;" class="bounce">${state.usedReveal ? '📖' : '🎉'}</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:2.5rem;background:${state.usedReveal ? 'linear-gradient(135deg,#ff8080,#ff4444)' : 'linear-gradient(135deg,#3d6fff,#00d4aa)'};-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:8px 0;">
+          ${state.usedReveal ? 'GELÖST!' : 'RICHTIG!'}
+        </div>
+        ${state.usedReveal ? '<div style="background:rgba(255,80,80,.06);border:1px solid rgba(255,80,80,.2);border-radius:10px;padding:10px 14px;margin:0 0 12px;font-size:.8rem;color:#ff9999;font-family:\'Space Mono\',monospace;">Antwort angezeigt — 0 Punkte</div>' : ''}
+        <div style="background:rgba(61,111,255,.06);border:1px solid rgba(61,111,255,.2);border-radius:12px;padding:16px;margin:14px 0;text-align:left;">
+          <div style="font-weight:700;color:#7fa8ff;margin-bottom:5px;">📚 Gelernt:</div>
+          <div style="color:#9aa3b5;font-size:.9rem;">${level.explanation}</div>
+        </div>
+        <button class="py-btn-primary" style="width:100%;font-size:1.05rem;" onclick="nextLevel()">${state.currentLevel < 9 ? '🐜 WEITER →' : '🏆 FINALE!'}</button>
+      </div>
+    </div>`;
+        }
+
+        function renderPythonCompleted(app) {
+            const stars = state.finalStats.score >= 900 ? 5 : state.finalStats.score >= 800 ? 4 : state.finalStats.score >= 700 ? 3 : state.finalStats.score >= 600 ? 2 : 1;
+            app.innerHTML = `
+    <div class="py-menu-root" style="background:linear-gradient(135deg,#0a0c18,#0d1a30);">
+      <div class="py-menu-card pop-in" style="text-align:center;position:relative;z-index:2;">
+        <div style="font-size:4.5rem;margin-bottom:6px;">👑</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:2.2rem;background:linear-gradient(135deg,#3d6fff,#00d4aa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">PYTHON-MEISTER!</div>
+        <div class="final-stars">${'⭐'.repeat(stars)}</div>
+        <div style="font-family:'Space Mono',monospace;font-size:2.2rem;color:#3d6fff;margin:14px 0;">🌾 ${state.finalStats.score}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;">
+          <div style="background:rgba(61,111,255,.08);border:1px solid rgba(61,111,255,.15);border-radius:10px;padding:12px;">
+            <div style="font-size:.68rem;color:#3d5080;font-family:'Space Mono',monospace;">PROZENT</div>
+            <div style="font-size:1.3rem;font-weight:700;color:#7fa8ff;">${state.finalStats.percent}%</div>
+          </div>
+          <div style="background:rgba(61,111,255,.08);border:1px solid rgba(61,111,255,.15);border-radius:10px;padding:12px;">
+            <div style="font-size:.68rem;color:#3d5080;font-family:'Space Mono',monospace;">Ø ZEIT</div>
+            <div style="font-size:1.3rem;font-weight:700;color:#00d4aa;">${state.finalStats.avgTime}s</div>
+          </div>
+        </div>
+        ${state.rankInfo ? `<div style="padding:12px;background:rgba(61,111,255,.08);border:1px solid rgba(61,111,255,.2);border-radius:10px;margin-bottom:16px;font-family:'Space Mono',monospace;font-size:.85rem;color:#7fa8ff;">🏆 Platz <strong style="color:#ffd060;">#${state.rankInfo.rank}</strong> von ${state.rankInfo.total}</div>` : ''}
+        <div style="display:flex;gap:12px;">
+          <button class="py-btn-primary" onclick="resetGame()">🔄 Nochmal</button>
+          <button class="py-btn-secondary" onclick="backToMenu()">🏠 Menü</button>
+        </div>
+      </div>
+    </div>`;
+        }
+
+        // ─── LEADERBOARD ───
+        function renderLeaderboard(app) {
+            app.innerHTML = `
+    <div class="lb-root">
+      <div class="menu-grid"></div>
+      <div class="menu-glow menu-glow-1" style="opacity:.15;"></div>
+      <div class="menu-glow menu-glow-2" style="opacity:.12;"></div>
+      <div class="lb-card slide-up">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
+          <div>
+            <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.8rem;background:linear-gradient(135deg,#fff,#3d6fff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">🏆 Rangliste</div>
+            <div style="font-family:'Space Mono',monospace;font-size:.7rem;color:#3d5080;margin-top:4px;">NUR TIMER-MODUS ZÄHLT</div>
+          </div>
+          <button class="back-btn" onclick="backToMenu()">← Zurück</button>
+        </div>
+        <div id="leaderboardContent" style="text-align:center;color:#3d5080;padding:40px;font-family:'Space Mono',monospace;">Wird geladen...</div>
+      </div>
+    </div>`;
+            loadLeaderboard();
+        }
+
+        function renderFeedback() {
+            if (!state.feedback) return '';
+            const [type, msg] = state.feedback.split(':');
+            const className = type === 'ok' ? (state.screen === 'css' ? 'css-feedback-ok' : 'py-feedback-ok') : (state.screen === 'css' ? 'css-feedback-err' : 'py-feedback-err');
+            return `<div class="${className}">${type === 'ok' ? '✅' : '❌'} ${msg}</div>`;
+        }
+
+        // ─── HELPERS ───
+        function generateConfetti() {
+            const colors = ['#ff6b2b', '#ff3d7f', '#ffd700', '#00d4aa', '#fff'];
+            return Array.from({ length: 16 }, (_, i) => ({ color: colors[i % 5], left: Math.random() * 100, delay: Math.random() * 2, dur: 2 + Math.random() * 2 }));
+        }
+
+        function getCorrectPyAnswerText(level) {
+            if (level.type === 'Ordne') return `Richtige Reihenfolge: ${level.correctOrder.join(', ')}`;
+            if (level.type === 'Finde') return `Überflüssige Variable: "${level.correctAnswer}"`;
+            return `Richtige Antwort: ${level.correctAnswer}`;
+        }
+
+        function validatePyAnswer(level, ans) {
+            const a = ans.trim();
+            if (level.type === 'Ordne') {
+                const nums = a.match(/\d+/g);
+                if (!nums) return false;
+                const parsed = nums.map(Number).filter(n => n >= 0 && n < level.correctOrder.length);
+                const seen = new Set();
+                const filtered = parsed.filter(n => { if (seen.has(n)) return false; seen.add(n); return true; });
+                return filtered.length === level.correctOrder.length && JSON.stringify(filtered) === JSON.stringify(level.correctOrder);
+            }
+            if (level.type === 'Finde') return new RegExp('\\b' + level.correctAnswer + '\\b', 'i').test(a);
+            if (level.type === 'Fix') {
+                const ca = level.correctAnswer;
+                if (a === ca) return true;
+                if (ca === '()' && /^print\s*\(.*\)/.test(a)) return true;
+                if (ca === ':' && a.endsWith(':')) return true;
+                if (ca === ']' && a.includes(']')) return true;
+                if (a.includes(ca)) return true;
+            }
+            return false;
+        }
+
+        async function loadLeaderboard() {
+            try {
+                const res = await fetch(API);
+                const data = await res.json();
+                const best = {};
+                data.forEach(s => { const key = s.name + '|' + s.game; if (!best[key] || s.score > best[key].score) best[key] = s; });
+                const deduped = Object.values(best).sort((a, b) => b.score - a.score);
+                let html = `
+      <div style="display:flex;gap:8px;margin-bottom:20px;">
+        <button onclick="loadLeaderboard()" style="font-family:'Space Mono',monospace;font-size:.7rem;padding:6px 14px;border-radius:20px;border:1px solid rgba(255,255,255,.1);background:transparent;color:#6b7280;cursor:pointer;">Alle</button>
+      </div>
+      <div class="lb-row lb-header">#<span style="margin-left:10px;">Name</span><span style="text-align:right;">Punkte</span><span style="text-align:right;">%</span><span style="text-align:right;">Ø Zeit</span><span style="text-align:right;">Spiel</span></div>`;
+                deduped.forEach((s, i) => {
+                    const rankLabel = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`;
+                    html += `<div class="lb-row"><span style="font-weight:700;">${rankLabel}</span><span>${s.name}</span><span style="text-align:right;color:#ffd060;font-weight:700;">${s.score}</span><span style="text-align:right;color:#00d4aa;">${s.percent}%</span><span style="text-align:right;color:#7fa8ff;">${s.avg_time}s</span><span style="text-align:right;font-size:.82rem;">${s.game === 'python' ? '🐍' : '🎨'}</span></div>`;
+                });
+                document.getElementById('leaderboardContent').innerHTML = html || '<div style="color:#3d5080;">Noch keine Einträge!</div>';
+            } catch (e) {
+                document.getElementById('leaderboardContent').innerHTML = '<div style="color:#ff5555;font-family:\'Space Mono\',monospace;">❌ Server nicht erreichbar</div>';
+            }
+        }
+
+        // ─── GAME FUNCTIONS ───
+        function startGameFlow(game) { state.gameMode = game; state.screen = 'namemodescreen'; render(); }
+        function startGame() {
+            if (state.playerName.trim().length < 2) return;
+            state.screen = state.gameMode;
+            state.levels = pickLevels(state.gameMode === 'python' ? pyPool : cssPool, 10);
+            state.gameState = 'menu';
+            render();
+        }
+        function startCssGame() { state.gameState = 'playing'; state.currentLevel = 0; state.score = 0; state.timeLeft = TIMER_MAX; state.levelStartTime = Date.now(); startTimer(); render(); }
+        function startPythonGame() { state.gameState = 'playing'; state.currentLevel = 0; state.score = 0; state.timeLeft = TIMER_MAX; state.levelStartTime = Date.now(); startTimer(); render(); }
+
+        function startTimer() {
+            if (state.timerMode && state.gameState === 'playing') {
+                state.timerRef = setInterval(() => {
+                    state.timeLeft--;
+                    if (state.timeLeft <= 0) { clearInterval(state.timerRef); handleTimeout(); }
+                    render();
+                }, 1000);
+            }
+        }
+        function handleTimeout() { state.levelTimes.push(TIMER_MAX); completeLevel(0, true); }
+
+        function checkCssAnswer() {
+            if (!state.userAnswer.trim()) { state.feedback = 'err:Bitte CSS eingeben!'; render(); return; }
+            const level = state.levels[state.currentLevel];
+            if (state.userAnswer.includes(level.correctCss.split(':')[0])) completeLevel();
+            else { state.feedback = 'err:Nutze die richtige Eigenschaft!'; render(); }
+        }
+        function checkPythonAnswer() {
+            if (!state.userAnswer.trim()) { state.feedback = 'err:Bitte antworten!'; render(); return; }
+            const level = state.levels[state.currentLevel];
+            if (validatePyAnswer(level, state.userAnswer)) completeLevel();
+            else { state.feedback = 'err:Nicht ganz richtig — versuch es nochmal!'; render(); }
+        }
+
+        function completeLevel(overridePts, timeout = false) {
+            clearInterval(state.timerRef);
+            const elapsed = Math.round((Date.now() - state.levelStartTime) / 1000);
+            state.levelTimes.push(elapsed);
+            let pts = overridePts;
+            if (overridePts === undefined) {
+                if (!state.timerMode) pts = state.hintsUsed === 0 ? 100 : 50;
+                else pts = Math.round((state.usedReveal ? 0 : (state.hintsUsed > 0 ? 50 : 100)) * (state.timeLeft / TIMER_MAX));
+            }
+            state.score += pts;
+            state.feedback = `ok:${timeout ? '⏰ Zeit abgelaufen!' : 'RICHTIG!'} +${pts} Körner!`;
+            state.gameState = 'levelComplete';
+            render();
+        }
+
+        async function nextLevel() {
+            if (state.currentLevel < state.levels.length - 1) {
+                state.currentLevel++;
+                state.gameState = 'playing'; state.userAnswer = ''; state.feedback = '';
+                state.showHint = false; state.hintsUsed = 0; state.usedReveal = false;
+                state.showAnswer = false; state.timeLeft = TIMER_MAX; state.levelStartTime = Date.now();
+                startTimer(); render();
+            } else { await finishGame(); }
+        }
+
+        async function finishGame() {
+            clearInterval(state.timerRef);
+            const allTimes = [...state.levelTimes, Math.round((Date.now() - state.levelStartTime) / 1000)];
+            const totalTime = allTimes.reduce((a, b) => a + b, 0);
+            const avgTime = Math.round(totalTime / allTimes.length);
+            const maxScore = state.levels.length * 100;
+            const percent = Math.round(state.score / maxScore * 100);
+            state.finalStats = { score: state.score, percent, avgTime, totalTime };
+            if (state.timerMode && state.playerName) {
+                try {
+                    const res = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: state.playerName, game: state.screen, mode: 'timer', score: state.score, max_score: maxScore, levels_done: state.levels.length, avg_time: avgTime, total_time: totalTime }) });
+                    const data = await res.json();
+                    state.rankInfo = { rank: data.rank, total: data.total };
+                } catch (e) { }
+            }
+            state.gameState = 'completed'; render();
+        }
+
+        function resetGame() {
+            clearInterval(state.timerRef);
+            state.currentLevel = 0; state.score = 0; state.gameState = 'menu'; state.userAnswer = '';
+            state.feedback = ''; state.showHint = false; state.hintsUsed = 0; state.usedReveal = false;
+            state.showAnswer = false; state.timeLeft = TIMER_MAX; state.levelTimes = []; render();
+        }
+
+        function backToMenu() {
+            clearInterval(state.timerRef);
+            Object.assign(state, { screen: 'menu', gameMode: null, gameState: 'menu', currentLevel: 0, score: 0, userAnswer: '', feedback: '', showHint: false, hintsUsed: 0, usedReveal: false, showAnswer: false, timeLeft: TIMER_MAX, levelTimes: [], finalStats: null, rankInfo: null });
+            render();
+        }
+
+        function goLeaderboard() { state.screen = 'leaderboard'; render(); }
+        function toggleHint() { state.showHint = !state.showHint; if (state.showHint) state.hintsUsed++; render(); }
+        function toggleAnswer() { state.showAnswer = !state.showAnswer; render(); }
+        function revealAnswer() { state.usedReveal = true; completeLevel(0); }
+        function updatePlayerName(name) { state.playerName = name; }
+        function switchMode(timerMode) { state.timerMode = timerMode; render(); }
+        function updateAnswer(answer) { state.userAnswer = answer; render(); }
+
+        // ─── INIT ───
+        setupSelectionTooltip();
+        render();
+    </script>
+</body>
+
+</html>

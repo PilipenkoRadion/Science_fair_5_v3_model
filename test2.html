@@ -1,0 +1,2152 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐜 Bug Hunter Academy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --py-bg: #0d0f1a;
+            --py-surface: #141626;
+            --py-border: #252840;
+            --py-accent: #3d6fff;
+            --py-accent2: #00d4aa;
+            --py-text: #e2e6f3;
+            --py-muted: #6b7280;
+            --css-bg: #fff8f0;
+            --css-surface: #ffffff;
+            --css-border: #ffd9b3;
+            --css-accent: #ff6b2b;
+            --css-accent2: #ff3d7f;
+            --css-text: #1a0a00;
+            --css-muted: #9a6a50
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif
+        }
+
+        /* ── GRID & GLOWS ── */
+        .menu-root {
+            min-height: 100vh;
+            background: #08090f;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative
+        }
+
+        .menu-grid {
+            position: absolute;
+            inset: 0;
+            background-image: linear-gradient(rgba(61, 111, 255, .07) 1px, transparent 1px), linear-gradient(90deg, rgba(61, 111, 255, .07) 1px, transparent 1px);
+            background-size: 40px 40px
+        }
+
+        .menu-glow {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: .35;
+            animation: floatGlow 8s ease-in-out infinite
+        }
+
+        .menu-glow-1 {
+            width: 500px;
+            height: 500px;
+            background: #3d6fff;
+            top: -100px;
+            left: -100px
+        }
+
+        .menu-glow-2 {
+            width: 400px;
+            height: 400px;
+            background: #ff6b2b;
+            bottom: -80px;
+            right: -80px;
+            animation-delay: -4s
+        }
+
+        @keyframes floatGlow {
+
+            0%,
+            100% {
+                transform: translate(0, 0) scale(1)
+            }
+
+            50% {
+                transform: translate(20px, 30px) scale(1.08)
+            }
+        }
+
+        /* ── MENU CARD ── */
+        .menu-card {
+            position: relative;
+            z-index: 10;
+            background: rgba(20, 22, 38, .85);
+            border: 1px solid rgba(61, 111, 255, .25);
+            border-radius: 24px;
+            padding: 52px 44px;
+            max-width: 780px;
+            width: 92%;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 0 80px rgba(61, 111, 255, .12), 0 40px 80px rgba(0, 0, 0, .6)
+        }
+
+        .menu-title {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(2.2rem, 6vw, 3.8rem);
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff 30%, #3d6fff 70%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
+            line-height: 1
+        }
+
+        .menu-sub {
+            font-family: 'Space Mono', monospace;
+            color: #6b7280;
+            font-size: .8rem;
+            margin-top: 8px;
+            letter-spacing: 2px;
+            text-transform: uppercase
+        }
+
+        .menu-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(61, 111, 255, .4), transparent);
+            margin: 28px 0
+        }
+
+        /* ── GAME CARDS ── */
+        .game-card {
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, .08);
+            padding: 24px;
+            cursor: pointer;
+            transition: all .3s cubic-bezier(.34, 1.56, .64, 1);
+            position: relative;
+            overflow: hidden
+        }
+
+        .game-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            transition: opacity .3s
+        }
+
+        .game-card:hover {
+            transform: translateY(-4px) scale(1.01)
+        }
+
+        .game-card:hover::before {
+            opacity: 1
+        }
+
+        .game-card:active {
+            transform: scale(.98)
+        }
+
+        .game-card-py {
+            background: linear-gradient(135deg, rgba(61, 111, 255, .1), rgba(0, 212, 170, .05))
+        }
+
+        .game-card-py::before {
+            background: linear-gradient(135deg, rgba(61, 111, 255, .18), rgba(0, 212, 170, .12))
+        }
+
+        .game-card-py:hover {
+            border-color: rgba(61, 111, 255, .5);
+            box-shadow: 0 8px 32px rgba(61, 111, 255, .2)
+        }
+
+        .game-card-css {
+            background: linear-gradient(135deg, rgba(255, 107, 43, .1), rgba(255, 61, 127, .05))
+        }
+
+        .game-card-css::before {
+            background: linear-gradient(135deg, rgba(255, 107, 43, .18), rgba(255, 61, 127, .12))
+        }
+
+        .game-card-css:hover {
+            border-color: rgba(255, 107, 43, .5);
+            box-shadow: 0 8px 32px rgba(255, 107, 43, .2)
+        }
+
+        .game-badge {
+            font-family: 'Space Mono', monospace;
+            font-size: .68rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            display: inline-block;
+            margin-bottom: 10px
+        }
+
+        .badge-py {
+            background: rgba(61, 111, 255, .2);
+            color: #7fa8ff;
+            border: 1px solid rgba(61, 111, 255, .3)
+        }
+
+        .badge-css {
+            background: rgba(255, 107, 43, .2);
+            color: #ff9870;
+            border: 1px solid rgba(255, 107, 43, .3)
+        }
+
+        .game-card-title {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 1.5rem;
+            color: #fff
+        }
+
+        .game-card-desc {
+            color: #9aa3b5;
+            font-size: .88rem;
+            margin-top: 6px;
+            line-height: 1.5
+        }
+
+        .game-card-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 16px
+        }
+
+        .levels-pill {
+            font-family: 'Space Mono', monospace;
+            font-size: .72rem;
+            color: #6b7280
+        }
+
+        .play-btn {
+            font-family: 'Syne', sans-serif;
+            font-size: .88rem;
+            font-weight: 700;
+            padding: 9px 22px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            transition: all .2s
+        }
+
+        .play-btn-py {
+            background: linear-gradient(135deg, #3d6fff, #00d4aa);
+            color: #fff
+        }
+
+        .play-btn-css {
+            background: linear-gradient(135deg, #ff6b2b, #ff3d7f);
+            color: #fff
+        }
+
+        /* ── BACK BTN ── */
+        .back-btn {
+            font-family: 'Space Mono', monospace;
+            font-size: .72rem;
+            padding: 7px 14px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, .15);
+            background: rgba(255, 255, 255, .06);
+            color: rgba(255, 255, 255, .6);
+            cursor: pointer;
+            transition: all .2s;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 6px
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, .12);
+            color: #fff
+        }
+
+        /* ── NAME/MODE SCREEN ── */
+        .nm-input {
+            width: 100%;
+            padding: 16px 20px;
+            background: rgba(255, 255, 255, .04);
+            border: 1px solid rgba(61, 111, 255, .25);
+            border-radius: 14px;
+            color: #fff;
+            font-family: 'Space Mono', monospace;
+            font-size: 1.1rem;
+            outline: none;
+            transition: border-color .2s;
+            text-align: center
+        }
+
+        .nm-input:focus {
+            border-color: #3d6fff;
+            box-shadow: 0 0 0 3px rgba(61, 111, 255, .12)
+        }
+
+        .nm-input::placeholder {
+            color: #3a3f55
+        }
+
+        .mode-card {
+            border-radius: 14px;
+            border: 2px solid rgba(255, 255, 255, .06);
+            padding: 20px 24px;
+            cursor: pointer;
+            transition: all .25s;
+            position: relative
+        }
+
+        .mode-card:hover {
+            transform: translateY(-2px)
+        }
+
+        .mode-card.selected-timer {
+            border-color: #3d6fff;
+            background: rgba(61, 111, 255, .1);
+            box-shadow: 0 0 20px rgba(61, 111, 255, .15)
+        }
+
+        .mode-card.selected-casual {
+            border-color: #ffd060;
+            background: rgba(255, 208, 96, .07);
+            box-shadow: 0 0 20px rgba(255, 208, 96, .1)
+        }
+
+        /* ── TIMER ── */
+        .timer-ring-wrap {
+            position: relative;
+            width: 72px;
+            height: 72px;
+            flex-shrink: 0
+        }
+
+        .timer-ring-wrap svg {
+            transform: rotate(-90deg)
+        }
+
+        .timer-number {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            font-size: 1.1rem
+        }
+
+        .timer-danger {
+            animation: timerPulse .5s ease-in-out infinite
+        }
+
+        @keyframes timerPulse {
+
+            0%,
+            100% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: .4
+            }
+        }
+
+        /* ── CSS GAME ── */
+        .css-root {
+            min-height: 100vh;
+            background: var(--css-bg);
+            font-family: 'DM Sans', sans-serif;
+            color: var(--css-text)
+        }
+
+        .css-blob {
+            position: fixed;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+            filter: blur(80px);
+            opacity: .18
+        }
+
+        .css-blob-1 {
+            width: 400px;
+            height: 400px;
+            background: #ff6b2b;
+            top: -100px;
+            right: -100px
+        }
+
+        .css-blob-2 {
+            width: 300px;
+            height: 300px;
+            background: #ff3d7f;
+            bottom: -60px;
+            left: -60px
+        }
+
+        .css-header {
+            position: relative;
+            z-index: 2;
+            background: rgba(255, 255, 255, .9);
+            border-bottom: 2px solid var(--css-border);
+            backdrop-filter: blur(10px);
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 20px rgba(255, 107, 43, .08)
+        }
+
+        .css-header-title {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 1.3rem;
+            background: linear-gradient(135deg, #ff6b2b, #ff3d7f);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent
+        }
+
+        .css-score-pill {
+            background: linear-gradient(135deg, #ff6b2b, #ff3d7f);
+            color: #fff;
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            font-size: .95rem;
+            padding: 7px 18px;
+            border-radius: 999px;
+            box-shadow: 0 4px 16px rgba(255, 107, 43, .3)
+        }
+
+        .css-progress-bar {
+            height: 4px;
+            background: rgba(255, 107, 43, .15)
+        }
+
+        .css-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b2b, #ff3d7f);
+            transition: width .4s cubic-bezier(.34, 1.56, .64, 1)
+        }
+
+        .css-main {
+            position: relative;
+            z-index: 2;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 28px 18px
+        }
+
+        .css-card {
+            background: #fff;
+            border: 2px solid var(--css-border);
+            border-radius: 20px;
+            padding: 32px;
+            box-shadow: 0 4px 32px rgba(255, 107, 43, .06);
+            margin-bottom: 18px
+        }
+
+        .css-level-title {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 1.9rem;
+            color: var(--css-text);
+            margin-bottom: 4px
+        }
+
+        .css-story {
+            color: var(--css-muted);
+            font-size: 1rem;
+            margin-bottom: 18px
+        }
+
+        .css-demo-box {
+            width: 100%;
+            height: 240px;
+            border: 2px dashed #ffb899;
+            background: linear-gradient(135deg, #fff8f4, #fff0e8);
+            border-radius: 14px;
+            position: relative;
+            margin: 14px 0;
+            overflow: hidden
+        }
+
+        .css-ant {
+            width: 44px;
+            height: 44px;
+            background: #8B4513;
+            border-radius: 50%;
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 22px;
+            transition: all .35s cubic-bezier(.34, 1.56, .64, 1);
+            box-shadow: 0 4px 12px rgba(139, 69, 19, .3)
+        }
+
+        .css-code-block {
+            background: #1a0e06;
+            border: 1px solid #3a2010;
+            border-radius: 12px;
+            padding: 18px 22px;
+            font-family: 'Space Mono', monospace;
+            font-size: .8rem;
+            color: #ff9870;
+            margin-bottom: 14px;
+            white-space: pre;
+            overflow-x: auto
+        }
+
+        .css-input {
+            width: 100%;
+            padding: 13px 16px;
+            border: 2px solid var(--css-border);
+            border-radius: 12px;
+            font-family: 'Space Mono', monospace;
+            font-size: .88rem;
+            color: var(--css-text);
+            background: #fff;
+            outline: none;
+            transition: border-color .2s;
+            margin-bottom: 14px
+        }
+
+        .css-input:focus {
+            border-color: #ff6b2b;
+            box-shadow: 0 0 0 3px rgba(255, 107, 43, .12)
+        }
+
+        .css-btn-primary {
+            background: linear-gradient(135deg, #ff6b2b, #ff3d7f);
+            color: #fff;
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: .95rem;
+            padding: 13px 26px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all .2s;
+            flex: 1
+        }
+
+        .css-btn-primary:hover {
+            box-shadow: 0 6px 24px rgba(255, 107, 43, .4);
+            transform: translateY(-1px)
+        }
+
+        .css-btn-secondary {
+            background: #f5ede6;
+            color: #9a6a50;
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: .95rem;
+            padding: 13px 26px;
+            border: 2px solid var(--css-border);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all .2s;
+            flex: 1
+        }
+
+        .css-btn-secondary:hover {
+            background: #ffe8d8
+        }
+
+        .css-hint-box {
+            background: #fff8f4;
+            border: 2px solid #ffb899;
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin-bottom: 14px;
+            font-size: .83rem;
+            color: #7a3010
+        }
+
+        .css-hint-btn {
+            background: transparent;
+            border: 2px solid #ff6b2b;
+            color: #ff6b2b;
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: .83rem;
+            padding: 8px 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all .2s;
+            margin-bottom: 14px
+        }
+
+        .css-hint-btn:hover {
+            background: rgba(255, 107, 43, .08)
+        }
+
+        .css-feedback-ok {
+            background: #f0fff8;
+            border: 2px solid #00c878;
+            border-radius: 12px;
+            padding: 13px 18px;
+            color: #006840;
+            font-weight: 700;
+            margin-bottom: 14px
+        }
+
+        .css-feedback-err {
+            background: #fff4f4;
+            border: 2px solid #ff4444;
+            border-radius: 12px;
+            padding: 13px 18px;
+            color: #aa0000;
+            font-weight: 700;
+            margin-bottom: 14px
+        }
+
+        .css-complete-root {
+            min-height: 100vh;
+            background: var(--css-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow: hidden
+        }
+
+        .css-menu-root {
+            min-height: 100vh;
+            background: var(--css-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow: hidden
+        }
+
+        .css-menu-card {
+            background: #fff;
+            border: 2px solid var(--css-border);
+            border-radius: 24px;
+            padding: 48px 40px;
+            max-width: 680px;
+            width: 100%;
+            box-shadow: 0 8px 60px rgba(255, 107, 43, .1);
+            position: relative;
+            z-index: 2
+        }
+
+        .css-menu-title {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: clamp(2.2rem, 5vw, 3.2rem);
+            background: linear-gradient(135deg, #ff6b2b, #ff3d7f);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 4px
+        }
+
+        /* ── PYTHON GAME ── */
+        .py-root {
+            min-height: 100vh;
+            background: var(--py-bg);
+            font-family: 'DM Sans', sans-serif;
+            color: var(--py-text)
+        }
+
+        .py-scanlines {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 1;
+            background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 0, 0, .04) 2px, rgba(0, 0, 0, .04) 4px)
+        }
+
+        .py-header {
+            position: relative;
+            z-index: 3;
+            background: rgba(20, 22, 38, .95);
+            border-bottom: 1px solid var(--py-border);
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            backdrop-filter: blur(10px)
+        }
+
+        .py-header-title {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 1.3rem;
+            background: linear-gradient(135deg, #3d6fff, #00d4aa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent
+        }
+
+        .py-score-pill {
+            background: rgba(61, 111, 255, .15);
+            border: 1px solid rgba(61, 111, 255, .3);
+            color: #7fa8ff;
+            font-family: 'Space Mono', monospace;
+            font-size: .95rem;
+            padding: 7px 18px;
+            border-radius: 999px
+        }
+
+        .py-progress-bar {
+            height: 3px;
+            background: rgba(61, 111, 255, .1)
+        }
+
+        .py-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3d6fff, #00d4aa);
+            transition: width .4s cubic-bezier(.34, 1.56, .64, 1)
+        }
+
+        .py-main {
+            position: relative;
+            z-index: 2;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 28px 18px
+        }
+
+        .py-card {
+            background: var(--py-surface);
+            border: 1px solid var(--py-border);
+            border-radius: 20px;
+            padding: 32px;
+            margin-bottom: 18px;
+            box-shadow: 0 4px 32px rgba(0, 0, 0, .3)
+        }
+
+        .py-level-title {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 1.9rem;
+            color: #fff
+        }
+
+        .py-story {
+            color: var(--py-muted);
+            font-size: 1rem;
+            margin: 6px 0 18px
+        }
+
+        .py-type-badge {
+            font-family: 'Space Mono', monospace;
+            font-size: .68rem;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 999px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: inline-block;
+            margin-bottom: 10px
+        }
+
+        .badge-fix {
+            background: rgba(255, 80, 80, .12);
+            border: 1px solid rgba(255, 80, 80, .25);
+            color: #ff8080
+        }
+
+        .badge-find {
+            background: rgba(255, 200, 0, .1);
+            border: 1px solid rgba(255, 200, 0, .2);
+            color: #ffd060
+        }
+
+        .badge-sort {
+            background: rgba(0, 212, 170, .1);
+            border: 1px solid rgba(0, 212, 170, .2);
+            color: #00d4aa
+        }
+
+        .py-code-block {
+            background: #0a0c14;
+            border: 1px solid #1e2240;
+            border-radius: 12px;
+            padding: 18px 22px;
+            font-family: 'Space Mono', monospace;
+            font-size: .8rem;
+            color: #a8b4d8;
+            margin-bottom: 14px;
+            white-space: pre;
+            overflow-x: auto
+        }
+
+        .py-error-line {
+            color: #ff6b6b;
+            border-top: 1px solid #2a1a1a;
+            margin-top: 12px;
+            padding-top: 12px
+        }
+
+        .py-lines-box {
+            background: rgba(61, 111, 255, .05);
+            border: 1px solid rgba(61, 111, 255, .15);
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin-bottom: 14px
+        }
+
+        .py-line-item {
+            background: rgba(255, 255, 255, .03);
+            border: 1px solid rgba(255, 255, 255, .06);
+            border-radius: 8px;
+            padding: 9px 13px;
+            margin-bottom: 7px;
+            font-family: 'Space Mono', monospace;
+            font-size: .78rem;
+            color: #a8b4d8
+        }
+
+        .py-line-num {
+            color: #3d6fff;
+            font-weight: 700;
+            margin-right: 10px
+        }
+
+        .py-textarea {
+            width: 100%;
+            padding: 13px 16px;
+            background: #0a0c14;
+            border: 1px solid var(--py-border);
+            border-radius: 12px;
+            color: #a8b4d8;
+            font-family: 'Space Mono', monospace;
+            font-size: .86rem;
+            resize: vertical;
+            outline: none;
+            transition: border-color .2s;
+            margin-bottom: 14px
+        }
+
+        .py-textarea:focus {
+            border-color: #3d6fff;
+            box-shadow: 0 0 0 3px rgba(61, 111, 255, .1)
+        }
+
+        .py-btn-primary {
+            background: linear-gradient(135deg, #3d6fff, #00d4aa);
+            color: #fff;
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: .95rem;
+            padding: 13px 26px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all .2s;
+            flex: 1
+        }
+
+        .py-btn-primary:hover {
+            box-shadow: 0 6px 24px rgba(61, 111, 255, .35);
+            transform: translateY(-1px)
+        }
+
+        .py-btn-secondary {
+            background: rgba(255, 255, 255, .05);
+            color: var(--py-muted);
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: .95rem;
+            padding: 13px 26px;
+            border: 1px solid var(--py-border);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all .2s;
+            flex: 1
+        }
+
+        .py-btn-secondary:hover {
+            background: rgba(255, 255, 255, .08)
+        }
+
+        .py-hint-btn {
+            background: transparent;
+            border: 1px solid rgba(61, 111, 255, .3);
+            color: #7fa8ff;
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: .83rem;
+            padding: 8px 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all .2s;
+            margin-bottom: 14px
+        }
+
+        .py-hint-btn:hover {
+            background: rgba(61, 111, 255, .08)
+        }
+
+        .py-hint-box {
+            background: rgba(61, 111, 255, .06);
+            border: 1px solid rgba(61, 111, 255, .2);
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin-bottom: 14px;
+            font-family: 'Space Mono', monospace;
+            font-size: .8rem;
+            color: #7fa8ff
+        }
+
+        .py-feedback-ok {
+            background: rgba(0, 212, 170, .08);
+            border: 1px solid rgba(0, 212, 170, .3);
+            border-radius: 12px;
+            padding: 13px 18px;
+            color: #00d4aa;
+            font-weight: 700;
+            margin-bottom: 14px
+        }
+
+        .py-feedback-err {
+            background: rgba(255, 80, 80, .08);
+            border: 1px solid rgba(255, 80, 80, .25);
+            border-radius: 12px;
+            padding: 13px 18px;
+            color: #ff8080;
+            font-weight: 700;
+            margin-bottom: 14px
+        }
+
+        .py-menu-root {
+            min-height: 100vh;
+            background: var(--py-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow: hidden
+        }
+
+        .py-menu-card {
+            background: var(--py-surface);
+            border: 1px solid var(--py-border);
+            border-radius: 24px;
+            padding: 48px 40px;
+            max-width: 680px;
+            width: 100%;
+            position: relative;
+            z-index: 2;
+            box-shadow: 0 0 80px rgba(61, 111, 255, .08), 0 40px 80px rgba(0, 0, 0, .5)
+        }
+
+        .py-menu-title {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: clamp(2.2rem, 5vw, 3.2rem);
+            background: linear-gradient(135deg, #3d6fff, #00d4aa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent
+        }
+
+        .py-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(61, 111, 255, .3), transparent);
+            margin: 24px 0
+        }
+
+        /* ── LEADERBOARD ── */
+        .lb-root {
+            min-height: 100vh;
+            background: #08090f;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            position: relative;
+            overflow: hidden
+        }
+
+        .lb-card {
+            background: rgba(20, 22, 38, .9);
+            border: 1px solid rgba(61, 111, 255, .2);
+            border-radius: 20px;
+            padding: 36px 32px;
+            max-width: 780px;
+            width: 100%;
+            position: relative;
+            z-index: 2;
+            backdrop-filter: blur(20px)
+        }
+
+        .lb-row {
+            display: grid;
+            grid-template-columns: 40px 1fr 80px 70px 70px 70px;
+            gap: 8px;
+            align-items: center;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: .85rem;
+            transition: background .2s
+        }
+
+        .lb-row:hover {
+            background: rgba(61, 111, 255, .06)
+        }
+
+        .lb-row.highlight {
+            background: rgba(61, 111, 255, .12);
+            border: 1px solid rgba(61, 111, 255, .2)
+        }
+
+        .lb-header {
+            font-family: 'Space Mono', monospace;
+            font-size: .65rem;
+            color: #3d5080;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 6px 14px;
+            margin-bottom: 6px
+        }
+
+        /* ── STATS OVERLAY ── */
+        .stats-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .85);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(8px);
+            animation: fadeIn .3s ease
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0
+            }
+
+            to {
+                opacity: 1
+            }
+        }
+
+        .stats-box {
+            background: rgba(20, 22, 38, .98);
+            border: 1px solid rgba(61, 111, 255, .3);
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 560px;
+            width: 92%;
+            text-align: center;
+            box-shadow: 0 0 80px rgba(61, 111, 255, .2)
+        }
+
+        .stats-countdown {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 3px solid rgba(61, 111, 255, .3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Space Mono', monospace;
+            font-size: 1.4rem;
+            color: #7fa8ff;
+            margin: 0 auto 20px
+        }
+
+        /* ── CONFETTI ── */
+        .confetti-dot {
+            position: fixed;
+            width: 8px;
+            height: 8px;
+            border-radius: 2px;
+            animation: confettiFall linear infinite
+        }
+
+        @keyframes confettiFall {
+            0% {
+                transform: translateY(-20px) rotate(0deg);
+                opacity: 1
+            }
+
+            100% {
+                transform: translateY(110vh) rotate(720deg);
+                opacity: 0
+            }
+        }
+
+        @keyframes popIn {
+            0% {
+                transform: scale(.5);
+                opacity: 0
+            }
+
+            70% {
+                transform: scale(1.1)
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1
+            }
+        }
+
+        .pop-in {
+            animation: popIn .5s cubic-bezier(.34, 1.56, .64, 1) both
+        }
+
+        .final-stars {
+            font-size: 2.8rem;
+            letter-spacing: 4px;
+            margin: 14px 0
+        }
+
+        @keyframes bounce {
+
+            0%,
+            100% {
+                transform: translateY(0)
+            }
+
+            50% {
+                transform: translateY(-18px)
+            }
+        }
+
+        .bounce {
+            animation: bounce 1s infinite
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        .slide-up {
+            animation: slideUp .5s ease both
+        }
+    </style>
+</head>
+
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useCallback } = React;
+
+        const API = "http://localhost:5000/api/scores";
+        const TIMER_MAX = 180; // 3 минуты
+
+        // ── ICONS ──────────────────────────────────────────────
+        const HelpCircle = ({ size = 18 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" /></svg>;
+        const ArrowLeft = ({ size = 15 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M19 12H5M12 5l-7 7 7 7" /></svg>;
+        const Trophy = ({ size = 18 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9H4a2 2 0 0 1-2-2V5h4" /><path d="M18 9h2a2 2 0 0 0 2-2V5h-4" /><path d="M12 17v4" /><path d="M8 21h8" /><path d="M6 5h12v6a6 6 0 0 1-12 0z" /></svg>;
+
+        // ── TIMER RING ──────────────────────────────────────────
+        const TimerRing = ({ seconds, maxSeconds = TIMER_MAX }) => {
+            const r = 28, circ = 2 * Math.PI * r;
+            const pct = seconds / maxSeconds;
+            const color = seconds > 60 ? '#00d4aa' : seconds > 30 ? '#ffd060' : '#ff5555';
+            const dash = circ * pct;
+            return (
+                <div className="timer-ring-wrap">
+                    <svg width="72" height="72" viewBox="0 0 72 72">
+                        <circle cx="36" cy="36" r={r} fill="none" stroke="rgba(255,255,255,.08)" strokeWidth="5" />
+                        <circle cx="36" cy="36" r={r} fill="none" stroke={color} strokeWidth="5"
+                            strokeDasharray={`${dash} ${circ}`} strokeLinecap="round"
+                            style={{ transition: 'stroke-dasharray .5s linear, stroke .5s' }} />
+                    </svg>
+                    <div className={`timer-number${seconds <= 10 ? ' timer-danger' : ''}`} style={{ color, fontSize: seconds < 10 ? '1.3rem' : '1.05rem' }}>
+                        {Math.floor(seconds / 60)}:{String(seconds % 60).padStart(2, '0')}
+                    </div>
+                </div>
+            );
+        };
+
+        // ── LEADERBOARD SCREEN ──────────────────────────────────
+        const Leaderboard = ({ onBack, highlightName }) => {
+            const [scores, setScores] = useState([]);
+            const [loading, setLoading] = useState(true);
+            const [filter, setFilter] = useState('all'); // all | python | css
+
+            useEffect(() => {
+                fetch(API).then(r => r.json()).then(data => {
+                    const best = {};
+                    data.forEach(s => {
+                        const key = s.name + '|' + s.game;
+                        if (!best[key] || s.score > best[key].score || (s.score === best[key].score && s.avg_time < best[key].avg_time))
+                            best[key] = s;
+                    });
+                    const deduped = Object.values(best);
+                    deduped.sort((a, b) => b.score - a.score || a.avg_time - b.avg_time);
+                    setScores(deduped); setLoading(false);
+                }).catch(() => { setScores([]); setLoading(false); });
+            }, []);
+
+            const filtered = filter === 'all' ? scores : scores.filter(s => s.game === filter);
+            const rankColor = i => i === 0 ? '#ffd700' : i === 1 ? '#c0c0c0' : i === 2 ? '#cd7f32' : '#e2e6f3';
+            const rankLabel = i => i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`;
+
+            return (
+                <div className="lb-root">
+                    <div className="menu-grid" />
+                    <div className="menu-glow menu-glow-1" style={{ opacity: .15 }} />
+                    <div className="menu-glow menu-glow-2" style={{ opacity: .12 }} />
+                    <div className="lb-card slide-up">
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+                            <div>
+                                <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 800, fontSize: '1.8rem', background: 'linear-gradient(135deg,#fff,#3d6fff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>🏆 Rangliste</div>
+                                <div style={{ fontFamily: "'Space Mono',monospace", fontSize: '.7rem', color: '#3d5080', marginTop: '4px' }}>NUR TIMER-MODUS ZÄHLT</div>
+                            </div>
+                            <button className="back-btn" onClick={onBack}><ArrowLeft /> Zurück</button>
+                        </div>
+
+                        {/* Filter tabs */}
+                        <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+                            {['all', 'python', 'css'].map(f => (
+                                <button key={f} onClick={() => setFilter(f)} style={{
+                                    fontFamily: "'Space Mono',monospace", fontSize: '.7rem', padding: '6px 14px', borderRadius: '20px', border: '1px solid', cursor: 'pointer', transition: 'all .2s',
+                                    borderColor: filter === f ? '#3d6fff' : 'rgba(255,255,255,.1)',
+                                    background: filter === f ? 'rgba(61,111,255,.15)' : 'transparent',
+                                    color: filter === f ? '#7fa8ff' : '#6b7280'
+                                }}>
+                                    {f === 'all' ? 'Alle' : f === 'python' ? '🐍 Python' : '🎨 CSS'}
+                                </button>
+                            ))}
+                        </div>
+
+                        {loading ? (
+                            <div style={{ textAlign: 'center', color: '#3d5080', padding: '40px', fontFamily: "'Space Mono',monospace" }}>Laden...</div>
+                        ) : filtered.length === 0 ? (
+                            <div style={{ textAlign: 'center', color: '#3d5080', padding: '40px', fontFamily: "'Space Mono',monospace" }}>Noch keine Einträge</div>
+                        ) : (
+                            <>
+                                <div className="lb-row lb-header" style={{ fontFamily: "'Space Mono',monospace" }}>
+                                    <span>#</span><span>Name</span><span style={{ textAlign: 'right' }}>Punkte</span><span style={{ textAlign: 'right' }}>%</span><span style={{ textAlign: 'right' }}>Ø Zeit</span><span style={{ textAlign: 'right' }}>Spiel</span>
+                                </div>
+                                {filtered.map((s, i) => (
+                                    <div key={i} className={`lb-row ${s.name === highlightName ? 'highlight' : ''}`}>
+                                        <span style={{ fontFamily: "'Space Mono',monospace", fontWeight: 700, color: rankColor(i), fontSize: i < 3 ? '1.1rem' : '.85rem' }}>{rankLabel(i)}</span>
+                                        <span style={{ color: '#e2e6f3', fontWeight: 600 }}>{s.name}{s.name === highlightName && <span style={{ marginLeft: '6px', fontSize: '.7rem', color: '#3d6fff', fontFamily: "'Space Mono',monospace" }}>← du</span>}</span>
+                                        <span style={{ textAlign: 'right', fontFamily: "'Space Mono',monospace", color: '#ffd060', fontWeight: 700 }}>{s.score}</span>
+                                        <span style={{ textAlign: 'right', fontFamily: "'Space Mono',monospace", color: '#00d4aa' }}>{s.percent}%</span>
+                                        <span style={{ textAlign: 'right', fontFamily: "'Space Mono',monospace", color: '#7fa8ff' }}>{s.avg_time}s</span>
+                                        <span style={{ textAlign: 'right', fontSize: '.82rem', fontFamily: "'Space Mono',monospace", color: '#9aa3b5' }}>{s.game === 'python' ? '🐍 Python' : '🎨 CSS'}</span>
+                                    </div>
+                                ))}
+                            </>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // ── STATS OVERLAY (5 сек) ───────────────────────────────
+        const StatsOverlay = ({ stats, rank, total, onClose }) => {
+            const [countdown, setCountdown] = useState(5);
+            useEffect(() => {
+                const t = setInterval(() => setCountdown(c => { if (c <= 1) { clearInterval(t); onClose(); return 0; } return c - 1; }), 1000);
+                return () => clearInterval(t);
+            }, []);
+            return (
+                <div className="stats-overlay" onClick={onClose}>
+                    <div className="stats-box pop-in" onClick={e => e.stopPropagation()}>
+                        <div className="stats-countdown">{countdown}</div>
+                        <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 800, fontSize: '1.8rem', background: 'linear-gradient(135deg,#3d6fff,#00d4aa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: '20px' }}>
+                            Deine Statistik
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
+                            {[
+                                { label: 'Gesamtpunkte', val: stats.score, color: '#ffd060' },
+                                { label: 'Prozent', val: `${stats.percent}%`, color: '#00d4aa' },
+                                { label: 'Ø Zeit/Level', val: `${stats.avgTime}s`, color: '#7fa8ff' },
+                                { label: 'Gesamtzeit', val: `${Math.floor(stats.totalTime / 60)}m ${stats.totalTime % 60}s`, color: '#ff9870' },
+                            ].map(({ label, val, color }) => (
+                                <div key={label} style={{ background: 'rgba(255,255,255,.04)', border: '1px solid rgba(255,255,255,.07)', borderRadius: '12px', padding: '14px' }}>
+                                    <div style={{ fontSize: '.72rem', fontFamily: "'Space Mono',monospace", color: '#6b7280', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '1px' }}>{label}</div>
+                                    <div style={{ fontSize: '1.5rem', fontFamily: "'Space Mono',monospace", fontWeight: 700, color }}>{val}</div>
+                                </div>
+                            ))}
+                        </div>
+                        {rank && <div style={{ fontFamily: "'Space Mono',monospace", fontSize: '.9rem', color: '#7fa8ff', padding: '12px', background: 'rgba(61,111,255,.08)', border: '1px solid rgba(61,111,255,.2)', borderRadius: '10px' }}>
+                            🏆 Platz <strong style={{ color: '#ffd060', fontSize: '1.2rem' }}>#{rank}</strong> von {total} Spielern
+                        </div>}
+                        <div style={{ marginTop: '16px', fontSize: '.75rem', fontFamily: "'Space Mono',monospace", color: '#3d5080' }}>Klicke irgendwo zum Schließen</div>
+                    </div>
+                </div>
+            );
+        };
+
+        // ══════════════════════════════════════════════════════════
+        //  CSS GAME
+        // ══════════════════════════════════════════════════════════
+        const CssGame = ({ onBack, playerName, timerMode }) => {
+            const [currentLevel, setCurrentLevel] = useState(0);
+            const [score, setScore] = useState(0);
+            const [gameState, setGameState] = useState('menu');
+            const [showHint, setShowHint] = useState(false);
+            const [userAnswer, setUserAnswer] = useState('');
+            const [feedback, setFeedback] = useState('');
+            const [hintsUsed, setHintsUsed] = useState(0);
+            const [usedReveal, setUsedReveal] = useState(false);
+            const [showAnswer, setShowAnswer] = useState(false);
+            const [timeLeft, setTimeLeft] = useState(TIMER_MAX);
+            const [levelStartTime, setLevelStartTime] = useState(Date.now());
+            const [levelTimes, setLevelTimes] = useState([]);
+            const [showStats, setShowStats] = useState(false);
+            const [finalStats, setFinalStats] = useState(null);
+            const [rankInfo, setRankInfo] = useState(null);
+            const timerRef = useRef(null);
+
+            const shuffle = arr => [...arr].sort(() => Math.random() - .5);
+            const pickLevels = (pool, n) => shuffle(pool).slice(0, n).map((l, i) => ({ ...l, id: i + 1 }));
+
+            const cssPool = [
+                { id: 1, title: 'Ameise nach LINKS', difficulty: '🐜 Sehr einfach', story: 'Ameise ist rechts. Verschiebe sie nach LINKS!', demoType: 'left', correctCss: 'left:', hint: 'left: 50px;', explanation: 'CSS left: bewegt Element von der linken Kante!' },
+                { id: 2, title: 'Ameise nach RECHTS', difficulty: '🐜 Sehr einfach', story: 'Ameise ist links. Verschiebe sie nach RECHTS!', demoType: 'right', correctCss: 'right:', hint: 'right: 50px;', explanation: 'CSS right: bewegt Element von der rechten Kante!' },
+                { id: 3, title: 'Ameise nach OBEN', difficulty: '🐜 Sehr einfach', story: 'Ameise ist unten. Verschiebe sie nach OBEN!', demoType: 'top', correctCss: 'top:', hint: 'top: 50px;', explanation: 'CSS top: bewegt Element von oben!' },
+                { id: 4, title: 'Ameise nach UNTEN', difficulty: '🐜 Sehr einfach', story: 'Ameise ist oben. Verschiebe sie nach UNTEN!', demoType: 'bottom', correctCss: 'bottom:', hint: 'bottom: 50px;', explanation: 'CSS bottom: bewegt Element von unten!' },
+                { id: 5, title: 'Rot + Größe', difficulty: '🐜 Leicht', story: 'Ameise riesig machen UND rot färben!', demoType: 'size-color', correctCss: 'width:', hint: 'width: 100px; background: red;', explanation: 'width für Größe, background für Farbe!' },
+                { id: 6, title: 'Rund wie Kreis', difficulty: '🐜🐜 Leicht', story: 'Ameise ist eckig. Mach sie rund mit border-radius!', demoType: 'circle', correctCss: 'border-radius:', hint: 'border-radius: 50%;', explanation: 'border-radius: 50% macht ein Quadrat zu einem Kreis!' },
+                { id: 7, title: 'Schatten + Position', difficulty: '🐜🐜 Mittel', story: 'Ameise nach oben UND Schatten unten!', demoType: 'shadow', correctCss: 'box-shadow:', hint: 'top: 50px; box-shadow: 0 5px 10px;', explanation: 'box-shadow: horizontal vertical blur color;' },
+                { id: 8, title: 'Transparenz (opacity)', difficulty: '🐜🐜 Mittel', story: 'Ameise durchsichtig machen mit opacity!', demoType: 'opacity', correctCss: 'opacity:', hint: 'opacity: 0.5;', explanation: 'opacity: 0.5 macht Element zu 50% transparent!' },
+                { id: 9, title: 'Rotation drehen', difficulty: '🐜🐜🐜 Schwer', story: 'Ameise um 45 Grad drehen mit transform!', demoType: 'rotate', correctCss: 'transform:', hint: 'transform: rotate(45deg);', explanation: 'transform: rotate(45deg) dreht das Element!' },
+                { id: 10, title: 'BOSS: ALLE EFFEKTE!', difficulty: '🐜🐜🐜🐜🐜 BOSS', story: 'Ameise: nach rechts + groß + rot + rund + Schatten!', demoType: 'boss', correctCss: 'right:', hint: 'right: 50px; width: 80px; background: red; border-radius: 50%; box-shadow: 0 5px 10px;', explanation: 'Du beherrschst CSS Positionierung + Größe + Farbe + Effekte!' },
+                { id: 11, title: 'Ameise ZENTRIEREN', difficulty: '🐜🐜 Mittel', story: 'Ameise soll horizontal mittig sein — nutze left + margin!', demoType: 'center', correctCss: 'left:', hint: 'left: 50%; transform: translateX(-50%);', explanation: 'left: 50% + translateX(-50%) zentriert ein absolutes Element!' },
+                { id: 12, title: 'Blau färben', difficulty: '🐜 Sehr einfach', story: 'Färbe die Ameise blau mit background!', demoType: 'blue', correctCss: 'background:', hint: 'background: blue;', explanation: 'background: color setzt die Hintergrundfarbe!' },
+                { id: 13, title: 'Groß skalieren', difficulty: '🐜🐜 Mittel', story: 'Ameise mit transform doppelt so groß machen!', demoType: 'scale', correctCss: 'transform:', hint: 'transform: scale(2);', explanation: 'transform: scale(2) verdoppelt die Größe des Elements!' },
+                { id: 14, title: 'Rahmen hinzufügen', difficulty: '🐜 Leicht', story: 'Gib der Ameise einen dicken weißen Rahmen!', demoType: 'border', correctCss: 'border:', hint: 'border: 3px solid white;', explanation: 'border: breite stil farbe — z.B. 3px solid white!' },
+                { id: 15, title: 'Unsichtbar machen', difficulty: '🐜🐜 Mittel', story: 'Ameise fast unsichtbar — opacity sehr niedrig!', demoType: 'invisible', correctCss: 'opacity:', hint: 'opacity: 0.1;', explanation: 'opacity: 0 bis 1 — 0 ist komplett unsichtbar!' },
+                { id: 16, title: 'Ameise spiegeln', difficulty: '🐜🐜🐜 Schwer', story: 'Ameise horizontal spiegeln mit transform!', demoType: 'flip', correctCss: 'transform:', hint: 'transform: scaleX(-1);', explanation: 'transform: scaleX(-1) spiegelt das Element horizontal!' },
+            ];
+
+            const [levels] = useState(() => pickLevels(cssPool, 10));
+            const lv = levels[currentLevel];
+
+            // Timer
+            useEffect(() => {
+                if (gameState === 'playing' && timerMode) {
+                    timerRef.current = setInterval(() => {
+                        setTimeLeft(t => {
+                            if (t <= 1) { clearInterval(timerRef.current); handleTimeout(); return 0; }
+                            return t - 1;
+                        });
+                    }, 1000);
+                }
+                return () => clearInterval(timerRef.current);
+            }, [gameState, currentLevel, timerMode]);
+
+            const handleTimeout = () => {
+                const elapsed = Math.round((Date.now() - levelStartTime) / 1000);
+                setLevelTimes(lt => [...lt, TIMER_MAX]);
+                completeLevel(0, true);
+            };
+
+            const calcTimerScore = (secondsLeft) => {
+                if (!timerMode) return hintsUsed === 0 ? 100 : 50;
+                if (usedReveal) return 0;
+                const base = hintsUsed > 0 ? 50 : 100;
+                const timeFactor = secondsLeft / TIMER_MAX;
+                return Math.round(base * timeFactor);
+            };
+
+            const getAntStyle = () => {
+                const b = { left: '10px', top: '10px', right: 'auto', bottom: 'auto', width: '44px', height: '44px', background: '#8B4513', borderRadius: '50%', boxShadow: '0 4px 12px rgba(139,69,19,.3)', opacity: '1', transform: 'rotate(0deg)' };
+                const ua = userAnswer;
+                if (lv.demoType === 'left') return { ...b, left: ua.includes('left') ? '50px' : '200px' };
+                if (lv.demoType === 'right') return { ...b, right: ua.includes('right') ? '50px' : '10px', left: 'auto' };
+                if (lv.demoType === 'top') return { ...b, top: ua.includes('top') ? '50px' : '185px' };
+                if (lv.demoType === 'bottom') return { ...b, bottom: ua.includes('bottom') ? '50px' : '10px', top: 'auto' };
+                if (lv.demoType === 'size-color') return { ...b, width: ua.includes('width') ? '80px' : '44px', height: ua.includes('width') ? '80px' : '44px', background: ua.includes('red') ? '#ff4422' : '#8B4513' };
+                if (lv.demoType === 'circle') return { ...b, borderRadius: ua.includes('border-radius') ? '50%' : '6px' };
+                if (lv.demoType === 'shadow') return { ...b, top: ua.includes('top') ? '50px' : '10px', boxShadow: ua.includes('box-shadow') ? '0 8px 24px rgba(0,0,0,.45)' : '0 4px 12px rgba(139,69,19,.3)' };
+                if (lv.demoType === 'opacity') return { ...b, opacity: ua.includes('opacity') ? '0.35' : '1' };
+                if (lv.demoType === 'rotate') return { ...b, transform: ua.includes('transform') ? 'rotate(45deg)' : 'rotate(0deg)' };
+                if (lv.demoType === 'boss') return { ...b, right: ua.includes('right') ? '50px' : '10px', left: 'auto', width: ua.includes('width') ? '80px' : '44px', height: ua.includes('width') ? '80px' : '44px', background: ua.includes('red') ? '#ff4422' : '#8B4513', borderRadius: ua.includes('border-radius') ? '50%' : '6px', boxShadow: ua.includes('box-shadow') ? '0 8px 24px rgba(0,0,0,.45)' : '0 4px 12px rgba(139,69,19,.3)' };
+                if (lv.demoType === 'center') return { ...b, left: ua.includes('left') ? '50%' : '20px', transform: ua.includes('translateX') || ua.includes('transform') ? 'translateX(-50%)' : 'none' };
+                if (lv.demoType === 'blue') return { ...b, background: ua.includes('background') || ua.includes('blue') ? '#2255ff' : '#8B4513' };
+                if (lv.demoType === 'scale') return { ...b, transform: ua.includes('scale') || ua.includes('transform') ? 'scale(2)' : 'scale(1)' };
+                if (lv.demoType === 'border') return { ...b, boxShadow: ua.includes('border') ? '0 0 0 3px white, 0 4px 12px rgba(139,69,19,.3)' : '0 4px 12px rgba(139,69,19,.3)' };
+                if (lv.demoType === 'invisible') return { ...b, opacity: ua.includes('opacity') ? '0.1' : '1' };
+                if (lv.demoType === 'flip') return { ...b, transform: ua.includes('scaleX') || ua.includes('transform') ? 'scaleX(-1)' : 'scaleX(1)' };
+                return b;
+            };
+
+            const checkAnswer = () => {
+                if (!userAnswer.trim()) { setFeedback('err:Bitte schreib CSS!'); return; }
+                if (userAnswer.includes(lv.correctCss.split(':')[0])) completeLevel();
+                else setFeedback('err:Nutze die richtige Eigenschaft!');
+            };
+
+            const completeLevel = (overridePts, timeout = false) => {
+                clearInterval(timerRef.current);
+                const elapsed = Math.round((Date.now() - levelStartTime) / 1000);
+                setLevelTimes(lt => [...lt, elapsed]);
+                const pts = overridePts !== undefined ? overridePts : calcTimerScore(timeLeft);
+                setScore(s => s + pts);
+                setFeedback(`ok:${timeout ? '⏰ Zeit abgelaufen!' : 'RICHTIG!'} +${pts} Körner!`);
+                setGameState('levelComplete');
+            };
+
+            const getCssCorrectAnswerText = (lv) => `Richtige CSS: ${lv.hint}`;
+            const revealAnswer = () => { setUsedReveal(true); setUserAnswer(lv.hint); completeLevel(0); };
+
+            const nextLevel = async () => {
+                if (currentLevel < levels.length - 1) {
+                    setCurrentLevel(c => c + 1); setGameState('playing');
+                    setUserAnswer(''); setFeedback(''); setShowHint(false); setHintsUsed(0); setUsedReveal(false);
+                    setTimeLeft(TIMER_MAX); setLevelStartTime(Date.now());
+                } else {
+                    await finishGame();
+                }
+            };
+
+            const finishGame = async () => {
+                const allTimes = [...levelTimes, Math.round((Date.now() - levelStartTime) / 1000)];
+                const totalTime = allTimes.reduce((a, b) => a + b, 0);
+                const avgTime = Math.round(totalTime / allTimes.length);
+                const finalScore = score;
+                const maxScore = levels.length * 100;
+                const percent = Math.round(finalScore / maxScore * 100);
+                setFinalStats({ score: finalScore, percent, avgTime, totalTime });
+
+                if (timerMode && playerName) {
+                    try {
+                        const res = await fetch(API, {
+                            method: 'POST', headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ name: playerName, game: 'css', mode: 'timer', score: finalScore, max_score: maxScore, levels_done: levels.length, avg_time: avgTime, total_time: totalTime })
+                        });
+                        const data = await res.json();
+                        setRankInfo({ rank: data.rank, total: data.total });
+                    } catch (e) { }
+                }
+                setShowStats(true);
+                setTimeout(() => { setShowStats(false); setGameState('completed'); }, 5000);
+            };
+
+            const resetGame = () => {
+                clearInterval(timerRef.current);
+                setCurrentLevel(0); setScore(0); setGameState('menu');
+                setUserAnswer(''); setFeedback(''); setShowHint(false); setHintsUsed(0); setUsedReveal(false);
+                setTimeLeft(TIMER_MAX); setLevelTimes([]); setShowStats(false);
+            };
+
+            const [fbType, fbMsg] = feedback ? feedback.split(':') : ['', ''];
+
+            if (gameState === 'menu') return (
+                <div className="css-menu-root">
+                    <div className="css-blob css-blob-1" /><div className="css-blob css-blob-2" />
+                    <div className="css-menu-card slide-up">
+                        <button className="back-btn" style={{ marginBottom: '22px', border: '1px solid #ffd9b3', color: '#9a6a50', background: 'transparent' }} onClick={onBack}><ArrowLeft /> Hauptmenü</button>
+                        <div style={{ fontSize: '3rem', marginBottom: '8px' }}>🎨</div>
+                        <div className="css-menu-title">CSS Edition</div>
+                        <div style={{ fontFamily: "'Space Mono',monospace", fontSize: '.75rem', color: '#c89070', letterSpacing: '2px', textTransform: 'uppercase', marginTop: '6px', marginBottom: '24px' }}>10 Levels · {timerMode ? '⏱ Timer-Modus' : '🎮 Casual'}</div>
+                        {!timerMode && <div style={{ background: 'rgba(255,208,96,.08)', border: '1px solid rgba(255,208,96,.2)', borderRadius: '10px', padding: '12px 16px', marginBottom: '20px', fontFamily: "'Space Mono',monospace", fontSize: '.75rem', color: '#ffd060' }}>⚠ Casual-Modus: kein Ranglisten-Eintrag</div>}
+                        <div style={{ background: '#fff8f4', border: '2px solid #ffd9b3', borderRadius: '14px', padding: '20px', marginBottom: '24px' }}>
+                            <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: '700', fontSize: '1rem', color: '#7a3010', marginBottom: '10px' }}>📋 Was erwartet dich?</div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '7px', color: '#6a4030', fontSize: '.88rem' }}>
+                                <div>✅ Level 1–4: Bewegung mit left, right, top, bottom</div>
+                                <div>✅ Level 5–7: Größe, Farbe & Effekte</div>
+                                <div>✅ Level 8–10: Transform, Opacity & Boss-Level</div>
+                                <div style={{ marginTop: '6px', color: '#ff6b2b', fontWeight: '600' }}>{timerMode ? '⏱ Score = Zeit × Basis-Punkte' : '🌾 100 ohne Tipp · 50 mit Tipp · 0 mit Antwort'}</div>
+                            </div>
+                        </div>
+                        <button className="css-btn-primary" style={{ width: '100%', fontSize: '1.05rem' }} onClick={() => { setGameState('playing'); setCurrentLevel(0); setScore(0); setHintsUsed(0); setTimeLeft(TIMER_MAX); setLevelStartTime(Date.now()); }}>
+                            🎨 CSS SPIELEN
+                        </button>
+                    </div>
+                </div>
+            );
+
+            if (gameState === 'playing') return (
+                <div className="css-root">
+                    {showStats && finalStats && <StatsOverlay stats={finalStats} rank={rankInfo?.rank} total={rankInfo?.total} onClose={() => { setShowStats(false); setGameState('completed'); }} />}
+                    <div className="css-blob css-blob-1" /><div className="css-blob css-blob-2" />
+                    <div className="css-header">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                            <button className="back-btn" style={{ border: '1px solid #ffd9b3', color: '#9a6a50', background: 'transparent' }} onClick={onBack}><ArrowLeft /> Menü</button>
+                            <div><div className="css-header-title">🎨 CSS</div><div style={{ fontFamily: "'Space Mono',monospace", fontSize: '.65rem', color: '#c89070' }}>Lv {currentLevel + 1}/10 · {playerName}</div></div>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            {timerMode && <TimerRing seconds={timeLeft} />}
+                            <div className="css-score-pill">🌾 {score}</div>
+                        </div>
+                    </div>
+                    <div className="css-progress-bar"><div className="css-progress-fill" style={{ width: `${((currentLevel + 1) / 10) * 100}%` }} /></div>
+                    <div className="css-main">
+                        <div className="css-card slide-up">
+                            <span style={{ fontFamily: "'Space Mono',monospace", fontSize: '.68rem', color: '#c89070', background: '#fff4ee', border: '1px solid #ffd9b3', borderRadius: '20px', padding: '3px 10px' }}>{lv.difficulty}</span>
+                            <div className="css-level-title" style={{ marginTop: '8px' }}>{lv.title}</div>
+                            <div className="css-story">{lv.story}</div>
+                            <div className="css-demo-box"><div className="css-ant" style={getAntStyle()}>🐜</div></div>
+                            <div className="css-code-block">{`.ant {\n  position: absolute;\n  ${userAnswer || '/* schreib hier... */'}\n}`}</div>
+                            <input type="text" className="css-input" value={userAnswer} onChange={e => setUserAnswer(e.target.value)} placeholder="z.B. left: 50px;" onKeyDown={e => e.key === 'Enter' && checkAnswer()} />
+                            {!showHint && <button className="css-hint-btn" onClick={() => { setShowHint(true); setHintsUsed(h => h + 1); }}><HelpCircle /> Tipp (−50%)</button>}
+                            {showHint && (
+                                <div style={{ marginBottom: '14px' }}>
+                                    <div className="css-hint-box" style={{ marginBottom: '9px' }}>
+                                        <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: '700', fontSize: '.75rem', color: '#c05010', marginBottom: '5px', letterSpacing: '1px', textTransform: 'uppercase' }}>💡 Tipp</div>
+                                        <div style={{ fontFamily: "'Space Mono',monospace", marginBottom: '9px' }}>{lv.hint}</div>
+                                        <div style={{ borderTop: '1px solid #ffcfaa', paddingTop: '9px', color: '#7a4020', fontSize: '.8rem' }}><span style={{ color: '#e05000', fontWeight: '600' }}>📚 Erklärung:</span> {lv.explanation}</div>
+                                    </div>
+                                    {!showAnswer && !usedReveal && (
+                                        <button onClick={() => setShowAnswer(true)} style={{ width: '100%', background: 'rgba(255,107,43,.06)', border: '2px solid rgba(255,107,43,.25)', color: '#cc4400', fontFamily: "'Syne',sans-serif", fontWeight: '700', fontSize: '.83rem', padding: '10px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                                            👁 Richtige Antwort zeigen <span style={{ fontFamily: "'Space Mono',monospace", fontSize: '.72rem', opacity: .6 }}>(0 Punkte)</span>
+                                        </button>
+                                    )}
+                                    {showAnswer && !usedReveal && (
+                                        <div>
+                                            <div style={{ background: 'rgba(255,107,43,.08)', border: '2px solid rgba(255,107,43,.3)', borderRadius: '10px', padding: '14px 16px', marginBottom: '10px' }}>
+                                                <div style={{ fontFamily: "'Space Mono',monospace", fontSize: '.68rem', color: '#ff9860', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '1px' }}>✅ Richtige Antwort:</div>
+                                                <div style={{ fontFamily: "'Space Mono',monospace", fontSize: '1rem', color: '#ff6b2b', fontWeight: 700 }}>{lv.hint}</div>
+                                            </div>
+                                            <button onClick={revealAnswer} style={{ width: '100%', background: 'linear-gradient(135deg,rgba(255,107,43,.15),rgba(255,61,127,.1))', border: '2px solid rgba(255,107,43,.4)', color: '#ff6b2b', fontFamily: "'Syne',sans-serif", fontWeight: '700', fontSize: '.9rem', padding: '12px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                                                ✅ Verstanden — WEITER <span style={{ fontFamily: "'Space Mono',monospace", fontSize: '.72rem', opacity: .6 }}>(0 Punkte)</span>
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                            {feedback && (fbType === 'ok' ? <div className="css-feedback-ok">✅ {fbMsg}</div> : <div className="css-feedback-err">❌ {fbMsg}</div>)}
+                            <div style={{ display: 'flex', gap: '12px' }}>
+                                <button className="css-btn-primary" onClick={checkAnswer}>✅ Prüfen</button>
+                                <button className="css-btn-secondary" onClick={resetGame}>🔄 Neu</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+
+            if (gameState === 'levelComplete') {
+                const confetti = Array.from({ length: 16 }, (_, i) => ({ id: i, color: ['#ff6b2b', '#ff3d7f', '#ffd700', '#00d4aa', '#fff'][i % 5], left: Math.random() * 100, delay: Math.random() * 2, dur: 2 + Math.random() * 2 }));
+                return (
+                    <div className="css-complete-root">
+                        <div className="css-blob css-blob-1" /><div className="css-blob css-blob-2" />
+                        {!usedReveal && confetti.map(c => <div key={c.id} className="confetti-dot" style={{ background: c.color, left: `${c.left}%`, animationDuration: `${c.dur}s`, animationDelay: `${c.delay}s` }} />)}
+                        <div className="css-menu-card pop-in" style={{ textAlign: 'center', position: 'relative', zIndex: 2 }}>
+                            <div style={{ fontSize: '4.5rem' }} className="bounce">{usedReveal ? '📖' : '🎉'}</div>
+                            <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 800, fontSize: '2.5rem', background: usedReveal ? 'linear-gradient(135deg,#ff6b2b,#cc2200)' : 'linear-gradient(135deg,#ff6b2b,#ff3d7f)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', margin: '8px 0' }}>{usedReveal ? 'GELÖST!' : 'RICHTIG!'}</div>
+                            {usedReveal && <div style={{ background: 'rgba(255,107,43,.07)', border: '2px solid rgba(255,107,43,.2)', borderRadius: '10px', padding: '10px 16px', margin: '0 0 14px', fontSize: '.82rem', color: '#cc4400', fontFamily: "'Space Mono',monospace" }}>Antwort gezeigt — 0 Punkte</div>}
+                            <div style={{ background: '#fff8f4', border: '2px solid #ffd9b3', borderRadius: '12px', padding: '18px', margin: '14px 0', textAlign: 'left' }}>
+                                <div style={{ fontWeight: '700', color: '#7a3010', marginBottom: '5px' }}>📚 Gelernt:</div>
+                                <div style={{ color: '#6a4030', fontSize: '.9rem' }}>{lv.explanation}</div>
+                            </div>
+                            <button className="css-btn-primary" style={{ width: '100%', fontSize: '1.05rem' }} onClick={nextLevel}>{currentLevel < levels.length - 1 ? '🎨 WEITER →' : '🏆 FINALE!'}</button>
+                        </div>
+                    </div>
+                );
+            }
+
+            const stars = score >= 900 ? 5 : score >= 800 ? 4 : score >= 700 ? 3 : score >= 600 ? 2 : 1;
+            return (
+                <div className="css-complete-root" style={{ background: 'linear-gradient(135deg,#fff0e8,#ffe0f0)' }}>
+                    {showStats && finalStats && <StatsOverlay stats={finalStats} rank={rankInfo?.rank} total={rankInfo?.total} onClose={() => setShowStats(false)} />}
+                    <div className="css-menu-card pop-in" style={{ textAlign: 'center', position: 'relative', zIndex: 2 }}>
+                        <div style={{ fontSize: '4.5rem', marginBottom: '6px' }}>👑</div>
+                        <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 800, fontSize: '2.2rem', background: 'linear-gradient(135deg,#ff6b2b,#ff3d7f)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>CSS MEISTER!</div>
+                        <div className="final-stars">{'⭐'.repeat(stars)}</div>
+                        <div style={{ fontFamily: "'Space Mono',monospace", fontSize: '2.2rem', color: '#ff6b2b', margin: '14px 0' }}>🌾 {score}</div>
+                        {finalStats && <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '20px' }}>
+                            <div style={{ background: '#fff8f4', border: '1px solid #ffd9b3', borderRadius: '10px', padding: '12px' }}><div style={{ fontSize: '.68rem', color: '#c89070', fontFamily: "'Space Mono',monospace" }}>PROZENT</div><div style={{ fontSize: '1.3rem', fontWeight: 700, color: '#ff6b2b' }}>{finalStats.percent}%</div></div>
+                            <div style={{ background: '#fff8f4', border: '1px solid #ffd9b3', borderRadius: '10px', padding: '12px' }}><div style={{ fontSize: '.68rem', color: '#c89070', fontFamily: "'Space Mono',monospace" }}>Ø ZEIT</div><div style={{ fontSize: '1.3rem', fontWeight: 700, color: '#ff6b2b' }}>{finalStats.avgTime}s</div></div>
+                        </div>}
+                        {rankInfo && <div style={{ padding: '12px', background: 'rgba(255,107,43,.08)', border: '1px solid rgba(255,107,43,.2)', borderRadius: '10px', marginBottom: '16px', fontFamily: "'Space Mono',monospace", fontSize: '.85rem', color: '#cc4400' }}>🏆 Platz <strong>#{rankInfo.rank}</strong> von {rankInfo.total}</div>}
+                        <div style={{ display: 'flex', gap: '12px' }}>
+                            <button className="css-btn-primary" onClick={resetGame}>🔄 Nochmal</button>
+                            <button className="css-btn-secondary" onClick={onBack}>🏠 Menü</button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // ══════════════════════════════════════════════════════════
+        //  PYTHON GAME
+        // ══════════════════════════════════════════════════════════
+        const PythonGame = ({ onBack, playerName, timerMode }) => {
+            const [currentLevel, setCurrentLevel] = useState(0);
+            const [score, setScore] = useState(0);
+            const [gameState, setGameState] = useState('menu');
+            const [showHint, setShowHint] = useState(false);
+            const [userAnswer, setUserAnswer] = useState('');
+            const [feedback, setFeedback] = useState('');
+            const [hintsUsed, setHintsUsed] = useState(0);
+            const [usedReveal, setUsedReveal] = useState(false);
+            const [showAnswer, setShowAnswer] = useState(false);
+            const [timeLeft, setTimeLeft] = useState(TIMER_MAX);
+            const [levelStartTime, setLevelStartTime] = useState(Date.now());
+            const [levelTimes, setLevelTimes] = useState([]);
+            const [showStats, setShowStats] = useState(false);
+            const [finalStats, setFinalStats] = useState(null);
+            const [rankInfo, setRankInfo] = useState(null);
+            const timerRef = useRef(null);
+
+            const shufflePy = arr => [...arr].sort(() => Math.random() - .5);
+            const pickPyLevels = (pool, n) => shufflePy(pool).slice(0, n).map((l, i) => ({ ...l, id: i + 1 }));
+
+            const pyPool = [
+                // ── FIX ──────────────────────────────────────
+                { id: 1, type: 'Fix', difficulty: '🐜 Sehr einfach', title: 'Hallo Ameise!', story: 'Die Ameise will "Hallo!" sagen, aber print hat keine Klammern!', code: 'print "Hallo Ameisenhügel!"', error: 'SyntaxError: missing parentheses', correctAnswer: '()', hint: 'print() braucht runde Klammern in Python 3!', explanation: 'print("Hallo Ameisenhügel!") — Klammern sind Pflicht!' },
+                { id: 2, type: 'Fix', difficulty: '🐜 Leicht', title: 'Liste schließen', story: 'Die Liste hat keine schließende Klammer!', code: 'ameisen = ["Alice", "Bob", "Charlie"\nprint(ameisen[0])', error: 'SyntaxError: unexpected EOF', correctAnswer: ']', hint: 'Eckige Klammern [ ] müssen geschlossen sein!', explanation: '["Alice", "Bob", "Charlie"] — schließende Klammer fehlt!' },
+                { id: 3, type: 'Fix', difficulty: '🐜🐜 Mittel', title: 'While Doppelpunkt', story: 'While Schleife braucht einen Doppelpunkt!', code: 'i = 0\nwhile i < 5\n    print(i)\n    i += 1', error: 'SyntaxError: expected ":"', correctAnswer: ':', hint: 'while braucht einen Doppelpunkt (:) nach der Bedingung!', explanation: 'while i < 5: — Doppelpunkt ist wichtig!' },
+                { id: 4, type: 'Fix', difficulty: '🐜🐜🐜 Schwer', title: 'NameError beheben', story: 'Variable wird benutzt bevor sie definiert wurde!', code: 'print(punkte)\npunkte = 100', error: 'NameError: name "punkte" is not defined', correctAnswer: 'punkte', hint: 'Definiere "punkte = 100" VOR dem print!', explanation: 'In Python muss eine Variable definiert sein, bevor man sie benutzt!' },
+                { id: 5, type: 'Fix', difficulty: '🐜 Leicht', title: 'if ohne Doppelpunkt', story: 'if-Bedingung braucht einen Doppelpunkt!', code: 'alter = 8\nif alter > 5\n    print("Groß!")', error: 'SyntaxError: expected ":"', correctAnswer: ':', hint: 'if Bedingung: — nicht vergessen!', explanation: 'if, elif, else, for, while — alle brauchen : am Ende!' },
+                { id: 6, type: 'Fix', difficulty: '🐜🐜 Mittel', title: 'Falsche Einrückung', story: 'Der print ist falsch eingerückt!', code: 'def sag_hallo():\nprint("Hallo!")', error: 'IndentationError: expected an indented block', correctAnswer: '    ', hint: '4 Leerzeichen vor print("Hallo!")!', explanation: 'Funktionskörper muss mit 4 Leerzeichen eingerückt sein!' },
+                { id: 7, type: 'Fix', difficulty: '🐜 Sehr einfach', title: 'Fehlende Klammer', story: 'Die Funktion wird ohne Klammern aufgerufen!', code: 'def greet():\n    print("Hi!")\ngreet', error: 'Funktion wird nicht ausgeführt', correctAnswer: '()', hint: 'Schreib greet() mit Klammern!', explanation: 'greet() — Klammern bedeuten: Funktion ausführen!' },
+                // ── FINDE ─────────────────────────────────────
+                { id: 8, type: 'Finde', difficulty: '🐜 Sehr einfach', title: 'Ameisen zählen', story: '5 + 3 = 8 Ameisen. Aber eine Variable ist sinnlos!', code: 'ameisen = 5\nneue = 3\ntotal = ameisen + neue\nprint(total)\nfehler = total - 100', correctAnswer: 'fehler', hint: 'Welche Variable wird nicht genutzt?', explanation: '"fehler" wird erstellt aber nie verwendet — überflüssig!' },
+                { id: 9, type: 'Finde', difficulty: '🐜 Leicht', title: 'if/else Bedingung', story: 'Alter prüfen. Eine Zeile macht keinen Sinn!', code: 'alter = 5\nif alter > 3:\n    print("Erwachsen!")\n    status = "OK"\nelse:\n    print("Jung!")', correctAnswer: 'status', hint: 'status wird erstellt aber nie benutzt!', explanation: '"status" ist überflüssig — wird nicht verwendet!' },
+                { id: 10, type: 'Finde', difficulty: '🐜🐜 Mittel', title: 'Schleife mit Ballast', story: 'Schleife zählt Ameisen. Eine Variable ist unnötig!', code: 'for i in range(5):\n    count = i + 1\n    doppelt = count * 2\n    print(count)', correctAnswer: 'doppelt', hint: 'Welche Variable wird berechnet aber nie genutzt?', explanation: '"doppelt" wird berechnet aber nie im Code verwendet!' },
+                { id: 11, type: 'Finde', difficulty: '🐜🐜 Mittel', title: 'Funktion mit Ballast', story: 'Funktion begrüßt eine Ameise. Eine Zeile ist überflüssig!', code: 'def greet(name):\n    msg = "Hallo " + name\n    länge = len(name)\n    return msg', correctAnswer: 'länge', hint: 'Welche Variable wird berechnet aber nie zurückgegeben oder genutzt?', explanation: '"länge" wird berechnet aber nie verwendet!' },
+                // ── ORDNE ─────────────────────────────────────
+                { id: 12, type: 'Ordne', difficulty: '🐜 Leicht', title: 'Schleife von 1 bis 10', story: '10 Ameisen arbeiten! Zeilen sind durcheinander!', codeLines: ['    print(f"Ameise {i+1}")', 'for i in range(10):'], correctOrder: [1, 0], hint: 'for zuerst, dann der Inhalt mit Einrückung!', explanation: 'Schleifen: for Zeile, dann Körper mit Einrückung!' },
+                { id: 13, type: 'Ordne', difficulty: '🐜🐜 Mittel', title: 'Dictionary mit Ameisen', story: 'Ein Dictionary ist durcheinander!', codeLines: ['    "alter": 5', '}', 'ameise = {', '    "name": "Alice",'], correctOrder: [2, 3, 0, 1], hint: 'Dictionary: öffnen mit {, dann Keys, dann schließen mit }!', explanation: 'Dictionary speichert Daten als key: value Paare!' },
+                { id: 14, type: 'Ordne', difficulty: '🐜🐜 Mittel', title: 'Funktion definieren', story: 'Funktion für die Ameise — Zeilen vertauscht!', codeLines: ['greet_ant("Alice")', 'def greet_ant(name):', '    print(f"Hallo {name}!")'], correctOrder: [1, 2, 0], hint: 'def zuerst, Körper eingerückt, dann Aufruf!', explanation: 'Funktionen: erst definieren (def), dann aufrufen!' },
+                { id: 15, type: 'Ordne', difficulty: '🐜🐜🐜 Schwer', title: 'if/elif/else', story: 'Bedingte Logik ist durcheinander!', codeLines: ['elif punkte > 50:', '    print("Mittel")', 'if punkte > 80:', '    print("Top!")', '    print("Wenig")', 'else:'], correctOrder: [2, 3, 0, 1, 5, 4], hint: 'if zuerst, dann elif, dann else!', explanation: 'Reihenfolge: if → elif → else!' },
+                { id: 16, type: 'Ordne', difficulty: '🐜🐜🐜🐜🐜 BOSS', title: 'BOSS: Komplettes Programm', story: 'Funktion + Schleife + Aufruf — alles durcheinander!', codeLines: ['        print(f"Ameise {i+1} arbeitet!")', 'create_ants(5)', '    for i in range(count):', 'def create_ants(count):', ''], correctOrder: [3, 2, 0, 4, 1], hint: 'def → for (eingerückt) → print (doppelt eingerückt) → Leerzeile → Aufruf!', explanation: 'Funktionen + Schleifen + Aufrufe meistern!' },
+            ];
+
+            const [levels] = useState(() => pickPyLevels(pyPool, 10));
+            const lv = levels[currentLevel];
+            const typeBadgeClass = lv ? (lv.type === 'Fix' ? 'badge-fix' : lv.type === 'Finde' ? 'badge-find' : 'badge-sort') : '';
+
+            // Timer
+            useEffect(() => {
+                if (gameState === 'playing' && timerMode) {
+                    timerRef.current = setInterval(() => {
+                        setTimeLeft(t => { if (t <= 1) { clearInterval(timerRef.current); handleTimeout(); return 0; } return t - 1; });
+                    }, 1000);
+                }
+                return () => clearInterval(timerRef.current);
+            }, [gameState, currentLevel, timerMode]);
+
+            const handleTimeout = () => { setLevelTimes(lt => [...lt, TIMER_MAX]); completeLevel(0, true); };
+
+            const calcTimerScore = (secondsLeft) => {
+                if (!timerMode) return hintsUsed === 0 ? 100 : 50;
+                if (usedReveal) return 0;
+                const base = hintsUsed > 0 ? 50 : 100;
+                return Math.round(base * (secondsLeft / TIMER_MAX));
+            };
+
+            // Validators
+            const parseOrder = (ans, len) => {
+                const nums = ans.match(/\d+/g); if (!nums) return null;
+                const parsed = nums.map(Number);
+                const filtered = parsed.filter(n => n >= 0 && n < len);
+                const seen = new Set();
+                return filtered.filter(n => { if (seen.has(n)) return false; seen.add(n); return true; });
+            };
+            const checkOrder = (ans, co) => { const p = parseOrder(ans, co.length); if (!p || p.length !== co.length) return false; return JSON.stringify(p) === JSON.stringify(co); };
+
+            // Универсальный валидатор по типу и correctAnswer задания
+            const validateAnswer = (lv, ans) => {
+                const a = ans.trim();
+                if (lv.type === 'Ordne') return checkOrder(ans, lv.correctOrder);
+                if (lv.type === 'Finde') return new RegExp('\\b' + lv.correctAnswer + '\\b', 'i').test(a);
+                if (lv.type === 'Fix') {
+                    const ca = lv.correctAnswer;
+                    if (a === ca) return true;
+                    if (ca === '()') { if (/^print\s*\(.*\)\s*$/.test(a)) return true; if (/print\s*\([^)]*\)/.test(a)) return true; }
+                    if (ca === ']') { if (/\[.*\]/.test(a)) return true; if (a.endsWith(']')) return true; }
+                    if (ca === ':') { if (a.endsWith(':')) return true; if (/\w.*:$/.test(a)) return true; }
+                    if (ca === '    ') { if (a.includes('    ') || a.startsWith('    ')) return true; }
+                    if (ca === 'punkte') { if (/punkte\s*=\s*100/.test(a)) return true; if (a.toLowerCase().includes('punkte') && a.includes('=')) return true; }
+                    if (a.includes(ca)) return true;
+                }
+                return false;
+            };
+
+            const getErrorHint = (lv, ans) => {
+                const a = ans.trim();
+                if (lv.type === 'Ordne') {
+                    const p = parseOrder(ans, lv.correctOrder.length);
+                    if (!p || p.length === 0) return 'err:Schreib die Nummern der Zeilen, z.B. 1,0 oder 2,3,0,1';
+                    if (p.length < lv.correctOrder.length) return `err:Zu wenig Zahlen! Du brauchst ${lv.correctOrder.length} Zahlen`;
+                    return 'err:Reihenfolge falsch — welche Zeile muss logisch zuerst kommen?';
+                }
+                if (lv.type === 'Finde') return 'err:Schau genau: welche Variable wird definiert aber nirgendwo benutzt?';
+                if (lv.correctAnswer === ':') { if (/\w/.test(a) && !a.includes(':')) return 'err:Fast! Nur der Doppelpunkt : fehlt am Ende!'; }
+                if (lv.correctAnswer === '()') { if (/print\s+/.test(a)) return 'err:print braucht Klammern: print("...")'; }
+                if (lv.correctAnswer === ']') return 'err:Schreib ] — die schließende Klammer fehlt!';
+                if (lv.correctAnswer === '    ') return 'err:4 Leerzeichen Einrückung fehlt vor der nächsten Zeile!';
+                return 'err:Nicht ganz richtig — versuch nochmal!';
+            };
+
+            const checkAnswer = () => {
+                if (!userAnswer.trim()) { setFeedback('err:Bitte antworte!'); return; }
+                if (validateAnswer(lv, userAnswer)) completeLevel();
+                else setFeedback(getErrorHint(lv, userAnswer));
+            };
+
+            const completeLevel = (overridePts, timeout = false) => {
+                clearInterval(timerRef.current);
+                const elapsed = Math.round((Date.now() - levelStartTime) / 1000);
+                setLevelTimes(lt => [...lt, elapsed]);
+                const pts = overridePts !== undefined ? overridePts : calcTimerScore(timeLeft);
+                setScore(s => s + pts);
+                setFeedback(`ok:${timeout ? '⏰ Zeit abgelaufen!' : 'RICHTIG!'} +${pts} Körner!`);
+                setGameState('levelComplete');
+            };
+
+            const getCorrectAnswerText = (lv) => {
+                if (lv.type === 'Ordne') return `Richtige Reihenfolge: ${lv.correctOrder.join(', ')}`;
+                if (lv.type === 'Finde') return `Überflüssige Variable: "${lv.correctAnswer}"`;
+                if (lv.correctAnswer === '()') return 'Füge () hinzu: print("Hallo Ameisenhügel!")';
+                if (lv.correctAnswer === ']') return 'Schließende Klammer: ]';
+                if (lv.correctAnswer === ':') return 'Doppelpunkt am Ende: :';
+                if (lv.correctAnswer === '    ') return '4 Leerzeichen Einrückung vor der Zeile';
+                return `Richtige Antwort: ${lv.correctAnswer}`;
+            };
+            const revealAnswer = () => { setUsedReveal(true); completeLevel(0); };
+
+            const nextLevel = async () => {
+                if (currentLevel < levels.length - 1) {
+                    setCurrentLevel(c => c + 1); setGameState('playing');
+                    setUserAnswer(''); setFeedback(''); setShowHint(false); setHintsUsed(0); setUsedReveal(false); setShowAnswer(false);
+                    setTimeLeft(TIMER_MAX); setLevelStartTime(Date.now());
+                } else { await finishGame(); }
+            };
+
+            const finishGame = async () => {
+                const allTimes = [...levelTimes, Math.round((Date.now() - levelStartTime) / 1000)];
+                const totalTime = allTimes.reduce((a, b) => a + b, 0);
+                const avgTime = Math.round(totalTime / allTimes.length);
+                const finalScore = score; const maxScore = levels.length * 100;
+                const percent = Math.round(finalScore / maxScore * 100);
+                setFinalStats({ score: finalScore, percent, avgTime, totalTime });
+                if (timerMode && playerName) {
+                    try {
+                        const res = await fetch(API, {
+                            method: 'POST', headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ name: playerName, game: 'python', mode: 'timer', score: finalScore, max_score: maxScore, levels_done: levels.length, avg_time: avgTime, total_time: totalTime })
+                        });
+                        const data = await res.json(); setRankInfo({ rank: data.rank, total: data.total });
+                    } catch (e) { }
+                }
+                setShowStats(true);
+                setTimeout(() => { setShowStats(false); setGameState('completed'); }, 5000);
+            };
+
+            const resetGame = () => {
+                clearInterval(timerRef.current);
+                setCurrentLevel(0); setScore(0); setGameState('menu');
+                setUserAnswer(''); setFeedback(''); setShowHint(false); setHintsUsed(0); setUsedReveal(false); setShowAnswer(false);
+                setTimeLeft(TIMER_MAX); setLevelTimes([]); setShowStats(false);
+            };
+
+            const [fbType, fbMsg] = feedback ? feedback.split(':') : ['', ''];
+
+            if (gameState === 'menu') return (
+                <div className="py-menu-root">
+                    <div className="menu-glow menu-glow-1" style={{ opacity: .2 }} />
+                    <div className="py-menu-card slide-up">
+                        <button className="back-btn" style={{ marginBottom: '22px' }} onClick={onBack}><ArrowLeft /> Hauptmenü</button>
+                        <div style={{ fontSize: '3rem', marginBottom: '8px' }}>🐍</div>
+                        <div className="py-menu-title">Python Edition</div>
+                        <div style={{ fontFamily: "'Space Mono',monospace", fontSize: '.75rem', color: '#3d6fff', letterSpacing: '2px', textTransform: 'uppercase', marginTop: '6px', marginBottom: '4px' }}>10 Levels · {timerMode ? '⏱ Timer-Modus' : '🎮 Casual'}</div>
+                        {!timerMode && <div style={{ background: 'rgba(255,208,96,.08)', border: '1px solid rgba(255,208,96,.2)', borderRadius: '10px', padding: '11px 14px', marginBottom: '16px', fontFamily: "'Space Mono',monospace", fontSize: '.72rem', color: '#ffd060' }}>⚠ Casual-Modus: kein Ranglisten-Eintrag</div>}
+                        <div className="py-divider" />
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '24px' }}>
+                            <div style={{ color: '#9aa3b5', fontSize: '.88rem' }}>✅ Level 1–3: Grundlagen (print, Variablen, Schleifen)</div>
+                            <div style={{ color: '#9aa3b5', fontSize: '.88rem' }}>✅ Level 4–7: Mittelstufe (Listen, if/else, Dictionaries)</div>
+                            <div style={{ color: '#9aa3b5', fontSize: '.88rem' }}>✅ Level 8–10: Fortgeschritten (Funktionen, alles zusammen)</div>
+                            <div style={{ color: '#3d6fff', fontSize: '.88rem', marginTop: '4px' }}>{timerMode ? '⏱ Score = Zeit × Basis-Punkte' : '🌾 100 · Tipp −50% · Antwort = 0'}</div>
+                        </div>
+                        <button className="py-btn-primary" style={{ width: '100%', fontSize: '1.05rem' }} onClick={() => { setGameState('playing'); setCurrentLevel(0); setScore(0); setHintsUsed(0); setTimeLeft(TIMER_MAX); setLevelStartTime(Date.now()); }}>
+                            🐜 PYTHON SPIELEN
+                        </button>
+                    </div>
+                </div>
+            );
+
+            if (gameState === 'playing') return (
+                <div className="py-root">
+                    {showStats && finalStats && <StatsOverlay stats={finalStats} rank={rankInfo?.rank} total={rankInfo?.total} onClose={() => { setShowStats(false); setGameState('completed'); }} />}
+                    <div className="py-scanlines" />
+                    <div className="py-header">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                            <button className="back-btn" onClick={onBack}><ArrowLeft /> Menü</button>
+                            <div><div className="py-header-title">🐍 Python</div><div style={{ fontFamily: "'Space Mono',monospace", fontSize: '.65rem', color: '#3d5080' }}>Lv {currentLevel + 1}/10 · {playerName}</div></div>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            {timerMode && <TimerRing seconds={timeLeft} />}
+                            <div className="py-score-pill">🌾 {score}</div>
+                        </div>
+                    </div>
+                    <div className="py-progress-bar"><div className="py-progress-fill" style={{ width: `${((currentLevel + 1) / 10) * 100}%` }} /></div>
+                    <div className="py-main">
+                        <div className="py-card slide-up">
+                            <div><span className={`py-type-badge ${typeBadgeClass}`}>{lv.type}</span></div>
+                            <div style={{ fontFamily: "'Space Mono',monospace", fontSize: '.68rem', color: '#6b7280', marginBottom: '5px' }}>{lv.difficulty}</div>
+                            <div className="py-level-title">{lv.title}</div>
+                            <div className="py-story">{lv.story}</div>
+                            {lv.code && <div className="py-code-block">{lv.code}{lv.error && <div className="py-error-line">💥 FEHLER:\n{lv.error}</div>}</div>}
+                            {lv.codeLines && <div className="py-lines-box">
+                                <div style={{ fontFamily: "'Space Mono',monospace", fontSize: '.68rem', color: '#3d6fff', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '1px' }}>📋 Code-Zeilen:</div>
+                                {lv.codeLines.map((line, idx) => <div key={idx} className="py-line-item"><span className="py-line-num">{idx}</span>{line || '(leer)'}</div>)}
+                            </div>}
+                            {!showHint && <button className="py-hint-btn" onClick={() => { setShowHint(true); setHintsUsed(h => h + 1); }}><HelpCircle /> Tipp (−50%)</button>}
+                            {showHint && (
+                                <div style={{ marginBottom: '14px' }}>
+                                    <div className="py-hint-box" style={{ marginBottom: '9px' }}>
+                                        <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: '700', fontSize: '.75rem', color: '#7fa8ff', marginBottom: '5px', letterSpacing: '1px', textTransform: 'uppercase' }}>💡 Tipp</div>
+                                        <div style={{ marginBottom: '9px' }}>{lv.hint}</div>
+                                        <div style={{ borderTop: '1px solid rgba(61,111,255,.15)', paddingTop: '9px', color: '#9aa3b5', fontSize: '.8rem' }}><span style={{ color: '#00d4aa', fontWeight: '600' }}>📚 Erklärung:</span> {lv.explanation}</div>
+                                    </div>
+                                    {!showAnswer && !usedReveal && (
+                                        <button onClick={() => setShowAnswer(true)} style={{ width: '100%', background: 'rgba(255,80,80,.06)', border: '1px solid rgba(255,80,80,.2)', color: '#ff8080', fontFamily: "'Syne',sans-serif", fontWeight: '700', fontSize: '.83rem', padding: '10px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                                            👁 Richtige Antwort zeigen <span style={{ fontFamily: "'Space Mono',monospace", fontSize: '.72rem', opacity: .7 }}>(0 Punkte)</span>
+                                        </button>
+                                    )}
+                                    {showAnswer && !usedReveal && (
+                                        <div>
+                                            <div style={{ background: 'rgba(0,212,170,.07)', border: '1px solid rgba(0,212,170,.25)', borderRadius: '10px', padding: '14px 16px', marginBottom: '10px' }}>
+                                                <div style={{ fontFamily: "'Space Mono',monospace", fontSize: '.68rem', color: '#00d4aa', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '1px' }}>✅ Richtige Antwort:</div>
+                                                <div style={{ fontFamily: "'Space Mono',monospace", fontSize: '1rem', color: '#fff', fontWeight: 700 }}>{getCorrectAnswerText(lv)}</div>
+                                            </div>
+                                            <button onClick={revealAnswer} style={{ width: '100%', background: 'linear-gradient(135deg,rgba(0,212,170,.15),rgba(61,111,255,.1))', border: '1px solid rgba(0,212,170,.35)', color: '#00d4aa', fontFamily: "'Syne',sans-serif", fontWeight: '700', fontSize: '.9rem', padding: '12px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                                                ✅ Verstanden — WEITER <span style={{ fontFamily: "'Space Mono',monospace", fontSize: '.72rem', opacity: .7 }}>(0 Punkte)</span>
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                            <div style={{ marginBottom: '7px', fontFamily: "'Space Mono',monospace", fontSize: '.72rem', color: '#6b7280' }}>
+                                {lv.type === 'Ordne' ? '📝 Reihenfolge (z.B. 1,0 oder 2,3,0,1):' : '📝 Deine Antwort:'}
+                            </div>
+                            <textarea className="py-textarea" value={userAnswer} onChange={e => setUserAnswer(e.target.value)} placeholder="Antwort hier..." rows="3" />
+                            {feedback && (fbType === 'ok' ? <div className="py-feedback-ok">✅ {fbMsg}</div> : <div className="py-feedback-err">❌ {fbMsg}</div>)}
+                            <div style={{ display: 'flex', gap: '12px' }}>
+                                <button className="py-btn-primary" onClick={checkAnswer}>✅ Prüfen</button>
+                                <button className="py-btn-secondary" onClick={resetGame}>🔄 Neu</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+
+            if (gameState === 'levelComplete') return (
+                <div className="py-menu-root">
+                    <div className="menu-glow menu-glow-1" style={{ opacity: .15 }} />
+                    <div className="menu-glow menu-glow-2" style={{ background: '#00d4aa', opacity: .1 }} />
+                    <div className="py-menu-card pop-in" style={{ textAlign: 'center', position: 'relative', zIndex: 2 }}>
+                        <div style={{ fontSize: '4.5rem' }} className="bounce">{usedReveal ? '📖' : '🎉'}</div>
+                        <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 800, fontSize: '2.5rem', background: usedReveal ? 'linear-gradient(135deg,#ff8080,#ff4444)' : 'linear-gradient(135deg,#3d6fff,#00d4aa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', margin: '8px 0' }}>
+                            {usedReveal ? 'GELÖST!' : 'RICHTIG!'}
+                        </div>
+                        {usedReveal && <div style={{ background: 'rgba(255,80,80,.06)', border: '1px solid rgba(255,80,80,.2)', borderRadius: '10px', padding: '10px 14px', margin: '0 0 12px', fontSize: '.8rem', color: '#ff9999', fontFamily: "'Space Mono',monospace" }}>Antwort gezeigt — 0 Punkte</div>}
+                        <div style={{ background: 'rgba(61,111,255,.06)', border: '1px solid rgba(61,111,255,.2)', borderRadius: '12px', padding: '16px', margin: '14px 0', textAlign: 'left' }}>
+                            <div style={{ fontWeight: '700', color: '#7fa8ff', marginBottom: '5px' }}>📚 Gelernt:</div>
+                            <div style={{ color: '#9aa3b5', fontSize: '.9rem' }}>{lv.explanation}</div>
+                        </div>
+                        <button className="py-btn-primary" style={{ width: '100%', fontSize: '1.05rem' }} onClick={nextLevel}>{currentLevel < levels.length - 1 ? '🐜 WEITER →' : '🏆 FINALE!'}</button>
+                    </div>
+                </div>
+            );
+
+            const stars = score >= 900 ? 5 : score >= 800 ? 4 : score >= 700 ? 3 : score >= 600 ? 2 : 1;
+            return (
+                <div className="py-menu-root" style={{ background: 'linear-gradient(135deg,#0a0c18,#0d1a30)' }}>
+                    {showStats && finalStats && <StatsOverlay stats={finalStats} rank={rankInfo?.rank} total={rankInfo?.total} onClose={() => setShowStats(false)} />}
+                    <div className="py-menu-card pop-in" style={{ textAlign: 'center', position: 'relative', zIndex: 2 }}>
+                        <div style={{ fontSize: '4.5rem', marginBottom: '6px' }}>👑</div>
+                        <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 800, fontSize: '2.2rem', background: 'linear-gradient(135deg,#3d6fff,#00d4aa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>PYTHON MEISTER!</div>
+                        <div className="final-stars">{'⭐'.repeat(stars)}</div>
+                        <div style={{ fontFamily: "'Space Mono',monospace", fontSize: '2.2rem', color: '#3d6fff', margin: '14px 0' }}>🌾 {score}</div>
+                        {finalStats && <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '18px' }}>
+                            <div style={{ background: 'rgba(61,111,255,.08)', border: '1px solid rgba(61,111,255,.15)', borderRadius: '10px', padding: '12px' }}><div style={{ fontSize: '.68rem', color: '#3d5080', fontFamily: "'Space Mono',monospace" }}>PROZENT</div><div style={{ fontSize: '1.3rem', fontWeight: 700, color: '#7fa8ff' }}>{finalStats.percent}%</div></div>
+                            <div style={{ background: 'rgba(61,111,255,.08)', border: '1px solid rgba(61,111,255,.15)', borderRadius: '10px', padding: '12px' }}><div style={{ fontSize: '.68rem', color: '#3d5080', fontFamily: "'Space Mono',monospace" }}>Ø ZEIT</div><div style={{ fontSize: '1.3rem', fontWeight: 700, color: '#00d4aa' }}>{finalStats.avgTime}s</div></div>
+                        </div>}
+                        {rankInfo && <div style={{ padding: '12px', background: 'rgba(61,111,255,.08)', border: '1px solid rgba(61,111,255,.2)', borderRadius: '10px', marginBottom: '16px', fontFamily: "'Space Mono',monospace", fontSize: '.85rem', color: '#7fa8ff' }}>🏆 Platz <strong style={{ color: '#ffd060' }}>#{rankInfo.rank}</strong> von {rankInfo.total}</div>}
+                        <div style={{ display: 'flex', gap: '12px' }}>
+                            <button className="py-btn-primary" onClick={resetGame}>🔄 Nochmal</button>
+                            <button className="py-btn-secondary" onClick={onBack}>🏠 Menü</button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // ══════════════════════════════════════════════════════════
+        //  NAME + MODE SCREEN
+        // ══════════════════════════════════════════════════════════
+        const NameModeScreen = ({ onStart }) => {
+            const [name, setName] = useState('');
+            const [mode, setMode] = useState('timer');
+            const [game, setGame] = useState(null); // 'python' | 'css'
+            const canStart = name.trim().length >= 2;
+
+            if (game) return (
+                <div className="menu-root">
+                    <div className="menu-grid" />
+                    <div className="menu-glow menu-glow-1" /><div className="menu-glow menu-glow-2" />
+                    <div className="menu-card slide-up" style={{ maxWidth: '640px' }}>
+                        <button className="back-btn" style={{ marginBottom: '24px' }} onClick={() => setGame(null)}><ArrowLeft /> Zurück</button>
+                        <div style={{ fontSize: '3rem', marginBottom: '8px' }}>{game === 'python' ? '🐍' : '🎨'}</div>
+                        <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 800, fontSize: '2rem', background: game === 'python' ? 'linear-gradient(135deg,#3d6fff,#00d4aa)' : 'linear-gradient(135deg,#ff6b2b,#ff3d7f)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: '6px' }}>
+                            {game === 'python' ? 'Python Edition' : 'CSS Edition'}
+                        </div>
+                        <div style={{ fontFamily: "'Space Mono',monospace", fontSize: '.75rem', color: '#3d5080', marginBottom: '24px', letterSpacing: '1px' }}>SPIELER & MODUS WÄHLEN</div>
+
+                        <div style={{ marginBottom: '20px' }}>
+                            <div style={{ fontFamily: "'Space Mono',monospace", fontSize: '.72rem', color: '#6b7280', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '1px' }}>Dein Name</div>
+                            <input className="nm-input" value={name} onChange={e => setName(e.target.value)} placeholder="Name eingeben..." maxLength={20}
+                                onKeyDown={e => e.key === 'Enter' && canStart && onStart({ game, name: name.trim(), timerMode: mode === 'timer' })} />
+                        </div>
+
+                        <div style={{ fontFamily: "'Space Mono',monospace", fontSize: '.72rem', color: '#6b7280', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '1px' }}>Modus</div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '28px' }}>
+                            <div className={`mode-card ${mode === 'timer' ? 'selected-timer' : ''}`} onClick={() => setMode('timer')} style={{ border: `2px solid ${mode === 'timer' ? '#3d6fff' : 'rgba(255,255,255,.06)'}` }}>
+                                <div style={{ fontSize: '1.8rem', marginBottom: '6px' }}>⏱</div>
+                                <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 700, fontSize: '1rem', color: '#fff', marginBottom: '4px' }}>Timer</div>
+                                <div style={{ fontSize: '.78rem', color: '#6b7280', lineHeight: 1.4 }}>3 Min pro Level. Score hängt von der Zeit ab. Ranglisten-Eintrag!</div>
+                                {mode === 'timer' && <div style={{ position: 'absolute', top: '10px', right: '10px', width: '8px', height: '8px', borderRadius: '50%', background: '#3d6fff', boxShadow: '0 0 8px #3d6fff' }} />}
+                            </div>
+                            <div className={`mode-card ${mode === 'casual' ? 'selected-casual' : ''}`} onClick={() => setMode('casual')} style={{ border: `2px solid ${mode === 'casual' ? '#ffd060' : 'rgba(255,255,255,.06)'}` }}>
+                                <div style={{ fontSize: '1.8rem', marginBottom: '6px' }}>🎮</div>
+                                <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 700, fontSize: '1rem', color: '#fff', marginBottom: '4px' }}>Casual</div>
+                                <div style={{ fontSize: '.78rem', color: '#6b7280', lineHeight: 1.4 }}>Kein Zeitdruck. Lernen ohne Stress. Kein Ranglisten-Eintrag.</div>
+                                {mode === 'casual' && <div style={{ position: 'absolute', top: '10px', right: '10px', width: '8px', height: '8px', borderRadius: '50%', background: '#ffd060', boxShadow: '0 0 8px #ffd060' }} />}
+                            </div>
+                        </div>
+
+                        {!canStart && <div style={{ fontFamily: "'Space Mono',monospace", fontSize: '.72rem', color: '#ff8080', marginBottom: '12px', textAlign: 'center' }}>⚠ Mindestens 2 Zeichen für den Namen</div>}
+                        <button
+                            onClick={() => canStart && onStart({ game, name: name.trim(), timerMode: mode === 'timer' })}
+                            style={{
+                                width: '100%', padding: '16px', borderRadius: '14px', border: 'none', cursor: canStart ? 'pointer' : 'not-allowed', fontFamily: "'Syne',sans-serif", fontWeight: 800, fontSize: '1.1rem', transition: 'all .2s',
+                                background: canStart ? (game === 'python' ? 'linear-gradient(135deg,#3d6fff,#00d4aa)' : 'linear-gradient(135deg,#ff6b2b,#ff3d7f)') : 'rgba(255,255,255,.05)',
+                                color: canStart ? '#fff' : '#3d5080', opacity: canStart ? 1 : .5,
+                                boxShadow: canStart ? '0 4px 24px rgba(61,111,255,.3)' : 'none'
+                            }}>
+                            {canStart ? `🚀 SPIELEN ALS ${name.trim().toUpperCase()}` : 'Name eingeben...'}
+                        </button>
+                    </div>
+                </div>
+            );
+
+            // Game selection
+            return (
+                <div className="menu-root">
+                    <div className="menu-grid" />
+                    <div className="menu-glow menu-glow-1" /><div className="menu-glow menu-glow-2" />
+                    <div className="menu-card slide-up">
+                        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                            <div>
+                                <div className="menu-title">🐜 Bug Hunter</div>
+                                <div className="menu-sub">Academy — choose your track</div>
+                            </div>
+                        </div>
+                        <div className="menu-divider" />
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                            <div className="game-card game-card-py" onClick={() => setGame('python')}>
+                                <div className="game-badge badge-py">10 Levels</div>
+                                <div className="game-card-title">🐍 Python Edition</div>
+                                <div className="game-card-desc">Fix Syntax-Fehler, finde überflüssige Variablen und ordne Code-Zeilen. Echter Debugging-Spaß!</div>
+                                <div className="game-card-footer">
+                                    <span className="levels-pill">Fix · Finde · Ordne</span>
+                                    <button className="play-btn play-btn-py">Spielen →</button>
+                                </div>
+                            </div>
+                            <div className="game-card game-card-css" onClick={() => setGame('css')}>
+                                <div className="game-badge badge-css">10 Levels</div>
+                                <div className="game-card-title">🎨 CSS Edition</div>
+                                <div className="game-card-desc">Bewege eine Ameise mit CSS-Properties — von left/right/top bis zu transform und box-shadow.</div>
+                                <div className="game-card-footer">
+                                    <span className="levels-pill">Interaktive Demo · Visuell</span>
+                                    <button className="play-btn play-btn-css">Spielen →</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div style={{ marginTop: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <div style={{ fontSize: '.75rem', fontFamily: "'Space Mono',monospace", color: '#3a3f55' }}>⏱ Timer · 🌾 Score · 🏆 Rangliste</div>
+                            <button onClick={() => onStart({ game: 'leaderboard' })} style={{ background: 'transparent', border: '1px solid rgba(255,255,255,.1)', color: '#6b7280', fontFamily: "'Space Mono',monospace", fontSize: '.72rem', padding: '7px 14px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', transition: 'all .2s' }}
+                                onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,215,0,.3)'; e.currentTarget.style.color = '#ffd060'; }}
+                                onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,.1)'; e.currentTarget.style.color = '#6b7280'; }}>
+                                <Trophy size={14} /> Rangliste
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // ══════════════════════════════════════════════════════════
+        //  APP ROOT
+        // ══════════════════════════════════════════════════════════
+        const App = () => {
+            const [screen, setScreen] = useState('menu');
+            const [playerName, setPlayerName] = useState('');
+            const [timerMode, setTimerMode] = useState(true);
+
+            const handleStart = ({ game, name, timerMode: tm }) => {
+                if (game === 'leaderboard') { setScreen('leaderboard'); return; }
+                setPlayerName(name); setTimerMode(tm); setScreen(game);
+            };
+
+            if (screen === 'leaderboard') return <Leaderboard onBack={() => setScreen('menu')} highlightName={playerName} />;
+            if (screen === 'css') return <CssGame onBack={() => setScreen('menu')} playerName={playerName} timerMode={timerMode} />;
+            if (screen === 'python') return <PythonGame onBack={() => setScreen('menu')} playerName={playerName} timerMode={timerMode} />;
+            return <NameModeScreen onStart={handleStart} />;
+        };
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+
+        // ════════════════════════════════════════════════════════
+        //  GESTURE CONTROLLER INTEGRATION
+        //  Listens for postMessage from gesture_controller.html
+        // ════════════════════════════════════════════════════════
+        (function () {
+            // Store reference to active input/textarea
+            let activeInput = null;
+
+            // Track the focused input
+            document.addEventListener('focusin', e => {
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')
+                    activeInput = e.target;
+            });
+            document.addEventListener('focusout', e => {
+                setTimeout(() => { if (document.activeElement !== activeInput) activeInput = null; }, 100);
+            });
+
+            window.addEventListener('message', e => {
+                const d = e.data;
+                if (!d || !d.type) return;
+
+                // ── Typing into focused input ──────────────────────
+                if (d.type === 'gesture_type' && activeInput) {
+                    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+                        window.HTMLInputElement.prototype, 'value') ||
+                        Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value');
+                    if (nativeInputValueSetter) {
+                        nativeInputValueSetter.set.call(activeInput, d.text);
+                        activeInput.dispatchEvent(new Event('input', { bubbles: true }));
+                    }
+                }
+
+                // ── Enter / confirm ────────────────────────────────
+                if (d.type === 'gesture_confirm') {
+                    if (activeInput) {
+                        activeInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+                    }
+                    // Click focused button if any
+                    const btn = document.querySelector('button:focus');
+                    if (btn) btn.click();
+                }
+
+                // ── Navigation ─────────────────────────────────────
+                if (d.type === 'gesture_nav') {
+                    if (d.dir === 'back') {
+                        const backBtn = document.querySelector('.back-btn');
+                        if (backBtn) { backBtn.click(); showGestureToast('← Zurück'); }
+                    }
+                    if (d.dir === 'forward') {
+                        // Try to click the main primary action button
+                        const primary = document.querySelector('.py-btn-primary, .css-btn-primary');
+                        if (primary) { primary.click(); showGestureToast('→ Weiter'); }
+                    }
+                }
+
+                // ── Mode selection ─────────────────────────────────
+                if (d.type === 'gesture_mode') {
+                    showGestureToast(d.mode === 'timer' ? '⏱ Timer gewählt' : '🎮 Casual gewählt');
+                }
+            });
+
+            // ── Toast notification ─────────────────────────────
+            function showGestureToast(msg) {
+                let toast = document.getElementById('gesture-toast');
+                if (!toast) {
+                    toast = document.createElement('div');
+                    toast.id = 'gesture-toast';
+                    Object.assign(toast.style, {
+                        position: 'fixed', top: '20px', left: '50%', transform: 'translateX(-50%)',
+                        background: 'rgba(20,22,38,.95)', border: '1px solid rgba(61,111,255,.3)',
+                        borderRadius: '12px', padding: '10px 24px', fontFamily: "'Space Mono',monospace",
+                        fontSize: '.8rem', color: '#00d4aa', zIndex: '99999', transition: 'opacity .3s',
+                        pointerEvents: 'none', boxShadow: '0 8px 32px rgba(0,0,0,.4)',
+                        backdropFilter: 'blur(20px)'
+                    });
+                    document.body.appendChild(toast);
+                }
+                toast.textContent = '🖐 ' + msg;
+                toast.style.opacity = '1';
+                clearTimeout(toast._t);
+                toast._t = setTimeout(() => toast.style.opacity = '0', 2000);
+            }
+
+            // ── Gesture Controller Launcher button ─────────────
+            const launchBtn = document.createElement('button');
+            launchBtn.id = 'gesture-launch';
+            launchBtn.innerHTML = '🖐';
+            launchBtn.title = 'Gesture Controller öffnen';
+            Object.assign(launchBtn.style, {
+                position: 'fixed', bottom: '20px', left: '20px', zIndex: '9998',
+                width: '52px', height: '52px', borderRadius: '50%',
+                background: 'rgba(20,22,38,.9)', border: '1px solid rgba(61,111,255,.3)',
+                color: '#fff', fontSize: '1.4rem', cursor: 'pointer',
+                boxShadow: '0 4px 20px rgba(61,111,255,.2)', transition: 'all .2s',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                backdropFilter: 'blur(10px)'
+            });
+            launchBtn.addEventListener('mouseenter', () => {
+                launchBtn.style.background = 'rgba(61,111,255,.2)';
+                launchBtn.style.boxShadow = '0 6px 28px rgba(61,111,255,.4)';
+                launchBtn.style.transform = 'scale(1.1)';
+            });
+            launchBtn.addEventListener('mouseleave', () => {
+                launchBtn.style.background = 'rgba(20,22,38,.9)';
+                launchBtn.style.boxShadow = '0 4px 20px rgba(61,111,255,.2)';
+                launchBtn.style.transform = 'scale(1)';
+            });
+            launchBtn.addEventListener('click', () => {
+                window.open('gesture_controller.html', 'gesture', 'width=700,height=650,resizable=yes');
+                showGestureToast('Gesture Controller geöffnet!');
+            });
+            document.body.appendChild(launchBtn);
+        })();
+
+    </script>
+</body>
+
+</html> w
